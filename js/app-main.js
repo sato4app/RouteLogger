@@ -5,7 +5,7 @@ import { initIndexedDB } from './db.js';
 import { initMap, displayPhotoMarkers } from './map.js';
 import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrientation } from './tracking.js';
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
-import { saveToFirebase, reloadFromFirebase, loadOfficialPoints } from './firebase-ops.js';
+import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls } from './ui.js';
 
 /**
@@ -110,13 +110,7 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    // Official Pointsロードボタン
-    const loadOfficialBtn = document.getElementById('loadOfficialPointsBtn');
-    if (loadOfficialBtn) {
-        loadOfficialBtn.addEventListener('click', async () => {
-            await loadOfficialPoints();
-        });
-    }
+
 
     // ダイアログ閉じるボタン
     document.getElementById('closeListBtn').addEventListener('click', closePhotoList);
