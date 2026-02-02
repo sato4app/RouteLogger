@@ -1,0 +1,284 @@
+// RouteLogger - 地図関連
+
+import { DEFAULT_POSITION, GSI_TILE_URL, GSI_ATTRIBUTION, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config.js';
+import * as state from './state.js';
+import { getLastPosition, getAllPhotos } from './db.js';
+
+/**
+ * 矢印型マーカーアイコンを作成
+ * @param {number} heading - 方角（度）
+ * @returns {L.DivIcon}
+ */
+/**
+ * 矢印型マーカーアイコンを作成
+ * @param {number} heading - 方角（度）
+ * @returns {L.DivIcon}
+ */
+export function createArrowIcon(heading = 0) {
+    return L.divIcon({
+        className: 'arrow-marker',
+        html: `<div class="arrow" style="transform: rotate(${heading}deg)">
+                <svg width="30" height="30" viewBox="0 0 30 30">
+                    <path d="M15 5 L25 25 L15 20 L5 25 Z" fill="#000080" stroke="#000050" stroke-width="2"/>
+                </svg>
+            </div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15] // Center of rotation
+    });
+}
+
+/**
+ * 開始地点用（四角）マーカーアイコンを作成
+ * @returns {L.DivIcon}
+ */
+export function createSquareIcon() {
+    return L.divIcon({
+        className: 'square-marker',
+        html: `<div style="width: 14px; height: 14px; background-color: #000080; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9] // Center
+    });
+}
+
+/**
+ * 写真マーカーアイコンを作成
+ * @returns {L.DivIcon}
+ */
+export function createPhotoIcon() {
+    return L.divIcon({
+        className: 'photo-marker',
+        html: `<div class="photo-marker-circle"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    });
+}
+
+/**
+ * 地図を初期化
+ */
+export async function initMap() {
+    let initialPosition = DEFAULT_POSITION;
+
+    // 現在位置を取得して初期化
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                console.log('現在位置から地図を初期化します:', lat, lng);
+                const map = state.map;
+                if (map) {
+                    map.setView([lat, lng], 16);
+                }
+            },
+            (error) => {
+                console.warn('現在位置の取得に失敗しました。デフォルト位置を使用します:', error);
+                const map = state.map;
+                if (map) {
+                    map.setView([DEFAULT_POSITION.lat, DEFAULT_POSITION.lng], DEFAULT_POSITION.zoom);
+                }
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+    } else {
+        console.warn('Geolocation APIがサポートされていません。デフォルト位置を使用します。');
+    }
+
+    const mapInstance = L.map('map', {
+        zoomControl: false // Disable default zoom control
+    }).setView([initialPosition.lat, initialPosition.lng], initialPosition.zoom);
+    state.setMap(mapInstance);
+
+    // 1. Scale Control (Top Left)
+    L.control.scale({
+        position: 'topleft',
+        metric: true,
+        imperial: false
+    }).addTo(mapInstance);
+
+
+
+    // 3. Zoom Control (Top Left, below Compass)
+    L.control.zoom({
+        position: 'topleft'
+    }).addTo(mapInstance);
+
+    L.tileLayer(GSI_TILE_URL, {
+        attribution: GSI_ATTRIBUTION,
+        maxZoom: MAP_MAX_ZOOM,
+        minZoom: MAP_MIN_ZOOM
+    }).addTo(mapInstance);
+
+    const trackingPathInstance = L.polyline([], {
+        color: '#000080',
+        weight: 4,
+        opacity: 0.7
+    }).addTo(mapInstance);
+    state.setTrackingPath(trackingPathInstance);
+
+    console.log('地図を初期化しました');
+}
+
+/**
+ * 写真マーカーを地図上に表示
+ * @param {Function} onMarkerClick - マーカークリック時のコールバック
+ */
+export async function displayPhotoMarkers(onMarkerClick) {
+    try {
+        // 既存のマーカーをクリア
+        state.photoMarkers.forEach(marker => state.map.removeLayer(marker));
+        state.clearPhotoMarkers();
+
+        const allPhotos = await getAllPhotos();
+        console.log(`IndexedDBから写真データを取得: ${allPhotos.length}件`);
+
+        let markerCount = 0;
+        allPhotos.forEach((photo, index) => {
+            if (photo.location && photo.location.lat && photo.location.lng) {
+                const photoIcon = createPhotoIcon();
+                const directionText = photo.direction ? ` - ${photo.direction}` : '';
+                const marker = L.marker([photo.location.lat, photo.location.lng], {
+                    icon: photoIcon,
+                    title: `${new Date(photo.timestamp).toLocaleString('ja-JP')}${directionText}`
+                }).addTo(state.map);
+
+                marker.photoId = photo.id;
+
+                if (onMarkerClick) {
+                    marker.on('click', () => onMarkerClick(photo));
+                }
+
+                state.addPhotoMarker(marker);
+                markerCount++;
+            } else {
+                console.warn(`写真 ${index + 1}: 位置情報なし`);
+            }
+        });
+
+        console.log(`写真マーカーを${markerCount}個表示しました（全${allPhotos.length}件中）`);
+    } catch (error) {
+        console.error('写真マーカー表示エラー:', error);
+    }
+}
+
+/**
+ * 地図上のマーカーと軌跡をクリア
+ */
+/**
+ * 地図上のマーカーと軌跡をクリア
+ */
+export function clearMapData() {
+    if (state.trackingPath) {
+        state.trackingPath.setLatLngs([]);
+        console.log('トラックパスをクリアしました');
+    }
+
+    state.photoMarkers.forEach(marker => state.map.removeLayer(marker));
+    state.clearPhotoMarkers();
+
+    state.routeMarkers.forEach(marker => state.map.removeLayer(marker));
+    state.clearRouteMarkers();
+
+    console.log('写真マーカーとルートマーカーをクリアしました');
+}
+
+/**
+ * 軌跡を更新
+ * @param {Array} points - 位置データ配列
+ */
+export function updateTrackingPath(points) {
+    if (state.trackingPath) {
+        const latlngs = points.map(point => [point.lat, point.lng]);
+        state.trackingPath.setLatLngs(latlngs);
+    }
+}
+
+/**
+ * 現在位置マーカーを更新
+ * @param {number} lat - 緯度
+ * @param {number} lng - 経度
+ * @param {number} heading - 方角
+ */
+export function updateCurrentMarker(lat, lng, heading) {
+    const arrowIcon = createArrowIcon(heading);
+    if (state.currentMarker) {
+        state.currentMarker.setLatLng([lat, lng]);
+        state.currentMarker.setIcon(arrowIcon);
+    } else {
+        const marker = L.marker([lat, lng], { icon: arrowIcon }).addTo(state.map);
+        state.setCurrentMarker(marker);
+        state.map.setView([lat, lng], 15);
+    }
+}
+
+/**
+ * 写真マーカーを追加
+ * @param {Object} photo - 写真データ
+ * @param {Function} onMarkerClick - クリック時のコールバック
+ */
+export function addPhotoMarkerToMap(photo, onMarkerClick) {
+    if (!photo.location) return;
+
+    const photoIcon = createPhotoIcon();
+    const marker = L.marker([photo.location.lat, photo.location.lng], {
+        icon: photoIcon,
+        title: `${new Date(photo.timestamp).toLocaleString('ja-JP')} - ${photo.direction || ''}`
+    }).addTo(state.map);
+
+    // IDを保持
+    marker.photoId = photo.id;
+
+    if (onMarkerClick) {
+        marker.on('click', () => onMarkerClick(photo));
+    }
+
+    state.addPhotoMarker(marker);
+}
+
+/**
+ * 写真マーカーを削除 (ID指定)
+ * @param {number} photoId
+ */
+export function removePhotoMarker(photoId) {
+    const index = state.photoMarkers.findIndex(m => m.photoId === photoId);
+    if (index !== -1) {
+        const marker = state.photoMarkers[index];
+        state.map.removeLayer(marker);
+        state.photoMarkers.splice(index, 1);
+        console.log('マーカーを削除しました:', photoId);
+    }
+}
+
+/**
+ * 開始マーカーを表示
+ * @param {number} lat - 緯度
+ * @param {number} lng - 経度
+ */
+export function addStartMarker(lat, lng) {
+    const icon = createSquareIcon();
+    const marker = L.marker([lat, lng], { icon: icon, title: 'Start Point', zIndexOffset: 1000 }).addTo(state.map);
+    state.addRouteMarker(marker);
+}
+
+/**
+ * 終了マーカーを表示（矢印）
+ * @param {number} lat - 緯度
+ * @param {number} lng - 経度
+ * @param {number} heading - 方角
+ */
+export function addEndMarker(lat, lng, heading) {
+    const arrowIcon = createArrowIcon(heading);
+    const marker = L.marker([lat, lng], { icon: arrowIcon, title: 'End Point', zIndexOffset: 1000 }).addTo(state.map);
+    state.addRouteMarker(marker);
+}
+
+/**
+ * 現在位置マーカーを削除
+ */
+export function removeCurrentMarker() {
+    if (state.currentMarker) {
+        state.map.removeLayer(state.currentMarker);
+        state.setCurrentMarker(null);
+    }
+}
+
