@@ -258,7 +258,7 @@ async function uploadPhotosToStorage(storage, projectName, photos) {
             try {
                 const blob = base64ToBlob(photo.data);
                 const timestamp = new Date(photo.timestamp).getTime();
-                const photoPath = `projects/${projectName}/photos/${timestamp}.jpg`;
+                const photoPath = `tracks/${projectName}/photos/${timestamp}.jpg`;
 
                 const storageRef = storage.ref(photoPath);
                 await storageRef.put(blob, {
