@@ -164,7 +164,7 @@ export async function updatePosition(position) {
             // UI更新（DB保存より先に行う）
             updateTrackingPath(state.trackingData);
             const totalPoints = state.previousTotalPoints + state.trackingData.length;
-            updateStatus(`GPS追跡中 (${totalPoints}点記録)`);
+            updateStatus(`GPS記録中 (${totalPoints}点記録)`);
             updateDataSizeIfOpen();
 
             state.setLastRecordedPoint({
@@ -305,7 +305,7 @@ export async function startTracking() {
         console.error('初期トラック作成エラー:', e);
     }
 
-    console.log('GPS追跡開始時刻:', state.trackingStartTime);
+    console.log('GPS記録開始時刻:', state.trackingStartTime);
 
     // Wake Lock取得
     await requestWakeLock();
@@ -339,11 +339,11 @@ export async function startTracking() {
     document.getElementById('startBtn').disabled = true;
     document.getElementById('stopBtn').disabled = false;
     document.getElementById('photoBtn').disabled = false;
-    updateStatus('GPS追跡を開始しました');
+    updateStatus('GPS記録を開始しました');
 }
 
 /**
- * GPS追跡を停止
+ * GPS記録を停止
  */
 export async function stopTracking() {
     if (!state.isTracking) return;
@@ -368,8 +368,8 @@ export async function stopTracking() {
         await saveLastPosition(lastPoint.lat, lastPoint.lng, state.map.getZoom());
         await saveTrackingDataRealtime(); // 最終更新 (新規作成ではなく更新)
         const totalPoints = state.previousTotalPoints + state.trackingData.length;
-        updateStatus(`GPS追跡を停止しました (${totalPoints}点記録)`);
+        updateStatus(`GPS記録を停止しました (${totalPoints}点記録)`);
     } else {
-        updateStatus('GPS追跡を停止しました');
+        updateStatus('GPS記録を停止しました');
     }
 }

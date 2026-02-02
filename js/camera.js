@@ -150,7 +150,7 @@ export function closeCameraDialog() {
     }
     state.setCapturedPhotoData(null);
 
-    updateStatus(state.isTracking ? `GPS追跡中 (${state.trackingData.length}点記録)` : 'GPS待機中...');
+    updateStatus(state.isTracking ? `GPS記録中 (${state.trackingData.length}点記録)` : 'GPS待機中...');
 }
 
 
@@ -307,7 +307,7 @@ export async function savePhotoWithDirection(direction) {
 
         setTimeout(() => {
             if (state.isTracking) {
-                // updateStatus(`GPS追跡中 (${state.trackingData.length}点記録)`);
+                // updateStatus(`GPS記録中 (${state.trackingData.length}点記録)`);
             } else {
                 // updateStatus('GPS待機中...');
             }

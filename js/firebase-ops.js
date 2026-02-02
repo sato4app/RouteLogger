@@ -12,7 +12,7 @@ import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromM
  */
 export async function saveToFirebase() {
     if (!state.trackingStartTime) {
-        alert('追跡データがありません。先にGPS追跡を開始してください。');
+        alert('記録データがありません。先にGPS記録を開始してください。');
         return;
     }
 
@@ -32,7 +32,7 @@ export async function saveToFirebase() {
         const projectName = await getUniqueProjectName(firestoreDb, baseProjectName);
         if (!projectName) return; // Cancelled or error
 
-        console.log('保存するプロジェクト名:', projectName);
+        console.log('保存するルート名:', projectName);
 
         // データ取得
         const allTracks = await getAllTracks();
@@ -58,8 +58,8 @@ export async function saveToFirebase() {
             totalPoints: track.totalPoints
         }));
 
-        // プロジェクトデータを保存
-        const projectRef = firestoreDb.collection('projects').doc(projectName);
+        // ルートデータを保存
+        const projectRef = firestoreDb.collection('tracks').doc(projectName);
         const projectData = {
             userId: currentUser ? currentUser.uid : null,
             startTime: state.trackingStartTime,
@@ -74,7 +74,7 @@ export async function saveToFirebase() {
 
         const trackStats = calculateTrackStats(allTracks);
         updateStatus('Firebase保存完了');
-        alert(`Firebaseに保存しました\nプロジェクト名: ${projectName}\n記録点数: ${trackStats.totalPoints}件\n写真: ${allPhotos.length}件`);
+        alert(`Firebaseに保存しました\nルート名: ${projectName}\n記録点数: ${trackStats.totalPoints}件\n写真: ${allPhotos.length}件`);
 
     } catch (error) {
         console.error('Firebase保存エラー:', error);
@@ -91,7 +91,7 @@ export async function reloadFromFirebase() {
         updateStatus('ドキュメント一覧を取得中...');
 
         const firestoreDb = firebase.firestore();
-        const querySnapshot = await firestoreDb.collection('projects').orderBy('createdAt', 'desc').get();
+        const querySnapshot = await firestoreDb.collection('tracks').orderBy('createdAt', 'desc').get();
 
         if (querySnapshot.empty) {
             alert('保存されたドキュメントがありません');
@@ -241,7 +241,7 @@ export async function loadOfficialPoints() {
 // ----------------------------------------------------------------------
 
 /**
- * プロジェクト名の重複をチェックし、一意な名前を生成
+ * ルート名の重複をチェックし、一意な名前を生成
  * @param {Object} firestoreDb 
  * @param {string} baseName 
  * @returns {Promise<string>}
@@ -251,17 +251,17 @@ async function getUniqueProjectName(firestoreDb, baseName) {
     let counter = 2;
 
     while (true) {
-        const checkRef = firestoreDb.collection('projects').doc(finalProjectName);
+        const checkRef = firestoreDb.collection('tracks').doc(finalProjectName);
         const existingDoc = await checkRef.get();
 
         if (!existingDoc.exists) break;
 
-        console.log(`プロジェクト名 "${finalProjectName}" は既に存在します。連番を付けます。`);
+        console.log(`ルート名 "${finalProjectName}" は既に存在します。連番を付けます。`);
         finalProjectName = `${baseName}_${counter}`;
         counter++;
 
         if (counter > 100) {
-            alert('プロジェクト名の連番が100を超えました。別の名前を使用してください。');
+            alert('ルート名の連番が100を超えました。別の名前を使用してください。');
             updateStatus('保存をキャンセルしました');
             return null;
         }

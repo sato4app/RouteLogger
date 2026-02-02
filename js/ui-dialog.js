@@ -101,7 +101,7 @@ export function closeDocumentListDialog() {
     toggleVisibility('documentListDialog', false);
     if (state.isTracking) {
         const totalPoints = state.previousTotalPoints + state.trackingData.length;
-        updateStatus(`GPS追跡中 (${totalPoints}点記録)`);
+        updateStatus(`GPS記録中 (${totalPoints}点記録)`);
     }
 }
 
@@ -193,7 +193,7 @@ export function closeStatsDialog() {
     toggleVisibility('statsDialog', false);
     if (state.isTracking) {
         const totalPoints = state.previousTotalPoints + state.trackingData.length;
-        updateStatus(`GPS追跡中 (${totalPoints}点記録)`);
+        updateStatus(`GPS記録中 (${totalPoints}点記録)`);
     }
 }
 
