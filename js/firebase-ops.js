@@ -90,8 +90,17 @@ export async function reloadFromFirebase() {
     try {
         updateStatus('ドキュメント一覧を取得中...');
 
+        const currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+            console.warn('ユーザーが認証されていません');
+            updateStatus('認証エラー: 再読み込みしてください');
+            alert('認証されていません。ページを再読み込みしてください。');
+            return;
+        }
+
         const firestoreDb = firebase.firestore();
-        const querySnapshot = await firestoreDb.collection('tracks').orderBy('createdAt', 'desc').get();
+        // インデックス未作成によるエラーを回避するため、orderByを使用せずに取得
+        const querySnapshot = await firestoreDb.collection('tracks').get();
 
         if (querySnapshot.empty) {
             alert('保存されたドキュメントがありません');
@@ -102,6 +111,13 @@ export async function reloadFromFirebase() {
         const documents = [];
         querySnapshot.forEach(doc => {
             documents.push({ id: doc.id, data: doc.data() });
+        });
+
+        // クライアント側で降順ソート
+        documents.sort((a, b) => {
+            const dateA = a.data.createdAt && typeof a.data.createdAt.toMillis === 'function' ? a.data.createdAt.toMillis() : 0;
+            const dateB = b.data.createdAt && typeof b.data.createdAt.toMillis === 'function' ? b.data.createdAt.toMillis() : 0;
+            return dateB - dateA;
         });
 
         showDocumentListDialog(documents, loadDocument);
