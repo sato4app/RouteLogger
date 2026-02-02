@@ -255,6 +255,7 @@ body {
 
 /* Inputs & Forms */
 .text-input {
+    box-sizing: border-box;
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #E5E5EA;

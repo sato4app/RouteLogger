@@ -20,7 +20,13 @@ export async function saveToFirebase() {
         updateStatus('Firebaseに保存中...');
 
         const currentUser = firebase.auth().currentUser;
-        console.log('Firebase認証状態:', currentUser ? 'ログイン済み' : '未ログイン');
+        if (!currentUser) {
+            console.warn('ユーザーが認証されていません');
+            updateStatus('認証エラー: 保存できません');
+            alert('認証されていません。ページを再読み込みしてください。');
+            return;
+        }
+        console.log('Firebase認証状態: ログイン済み');
 
         const baseProjectName = await showDocNameDialog(state.trackingStartTime);
         if (!baseProjectName) {
