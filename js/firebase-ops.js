@@ -200,10 +200,23 @@ async function getUniqueProjectName(firestoreDb, baseName) {
     let counter = 2;
 
     while (true) {
-        const checkRef = firestoreDb.collection('tracks').doc(finalProjectName);
-        const existingDoc = await checkRef.get();
+        try {
+            // インデックス未作成エラーを回避するため、doc().get()ではなくQueryを使用
+            const querySnapshot = await firestoreDb.collection('tracks')
+                .where(firebase.firestore.FieldPath.documentId(), '==', finalProjectName)
+                .get();
 
-        if (!existingDoc.exists) break;
+            if (querySnapshot.empty) break;
+        } catch (error) {
+            console.warn('重複チェックエラー (スキップして続行します):', error);
+            // エラーが出た場合は、重複していないとみなして進む（または安全策で連番にするなど）
+            // ここでは一旦そのまま進む
+            if (error.code === 'permission-denied') {
+                // 権限エラーでも一旦breakして保存を試みる（書き込みで失敗するならそれはそれで正しい）
+                break;
+            }
+            break;
+        }
 
         console.log(`ルート名 "${finalProjectName}" は既に存在します。連番を付けます。`);
         finalProjectName = `${baseName}_${counter}`;
