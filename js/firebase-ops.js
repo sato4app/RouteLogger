@@ -286,6 +286,9 @@ async function uploadPhotosToStorage(storage, projectName, photos) {
             } catch (uploadError) {
                 uploadFailCount++;
                 console.error(`写真 ${i + 1} のアップロードエラー:`, uploadError);
+                if (uploadFailCount === 1) { // 最初のエラーだけアラート表示
+                    alert(`写真アップロードエラー: ${uploadError.message}`);
+                }
             }
         }
     }
