@@ -27,11 +27,11 @@ const urlsToCache = [
 
 // Service Workerのインストール
 self.addEventListener('install', function (event) {
-  console.log('[Service Worker] インストール中...');
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function (cache) {
-        console.log('[Service Worker] キャッシュを開きました');
+
         return cache.addAll(urlsToCache);
       })
       .catch(function (error) {
@@ -42,13 +42,13 @@ self.addEventListener('install', function (event) {
 
 // Service Workerのアクティベーション
 self.addEventListener('activate', function (event) {
-  console.log('[Service Worker] アクティベート中...');
+
   event.waitUntil(
     caches.keys().then(function (cacheNames) {
       return Promise.all(
         cacheNames.map(function (cacheName) {
           if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] 古いキャッシュを削除:', cacheName);
+
             return caches.delete(cacheName);
           }
         })

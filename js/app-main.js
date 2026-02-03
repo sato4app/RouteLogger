@@ -14,10 +14,10 @@ import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showData
 async function initApp() {
     // Firebase匿名認証
     try {
-        console.log('Firebase匿名認証を開始...');
+
         await firebase.auth().signInAnonymously();
         const user = firebase.auth().currentUser;
-        console.log('Firebase匿名認証成功 - UID:', user.uid);
+
         state.setFirebaseAuthReady(true);
     } catch (authError) {
         console.error('Firebase匿名認証エラー:', authError);
@@ -35,7 +35,7 @@ async function initApp() {
     // IndexedDB初期化
     try {
         await initIndexedDB();
-        console.log('IndexedDB初期化完了');
+
 
         if (!state.db) {
             throw new Error('IndexedDB初期化後もdb変数がnullです');
@@ -157,11 +157,11 @@ function setupDeviceOrientation() {
 
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         // iOS: Startボタンクリック時に許可を要求
-        console.log('iOS: DeviceOrientation許可が必要です');
+
     } else {
         // Android等
         window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-        console.log('DeviceOrientation イベントリスナーを追加しました');
+
     }
 }
 
@@ -172,10 +172,10 @@ function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js')
             .then(registration => {
-                console.log('Service Worker登録成功:', registration.scope);
+
             })
             .catch(error => {
-                console.log('Service Worker登録失敗:', error);
+
             });
     }
 }

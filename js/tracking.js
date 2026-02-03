@@ -17,10 +17,10 @@ export async function requestWakeLock() {
         if ('wakeLock' in navigator) {
             const lock = await navigator.wakeLock.request('screen');
             state.setWakeLock(lock);
-            console.log('Wake Lock取得成功：画面スリープを防止します');
+
 
             lock.addEventListener('release', () => {
-                console.log('Wake Lockが解放されました');
+
             });
 
             return true;
@@ -42,7 +42,7 @@ export async function releaseWakeLock() {
         try {
             await state.wakeLock.release();
             state.setWakeLock(null);
-            console.log('Wake Lockを解放しました：画面スリープが有効になります');
+
         } catch (err) {
             console.error('Wake Lock解放エラー:', err);
         }
@@ -54,7 +54,7 @@ export async function releaseWakeLock() {
  */
 export async function handleVisibilityChange() {
     if (document.visibilityState === 'visible' && state.isTracking) {
-        console.log('ページが再表示されました。Wake Lockを再取得します');
+
         await requestWakeLock();
     }
 }
@@ -176,7 +176,7 @@ export async function updatePosition(position) {
             try {
                 if (state.db) {
                     await saveTrackingDataRealtime();
-                    console.log(`GPS位置をIndexedDBに保存しました (${state.trackingData.length}点目)`);
+
                 }
             } catch (saveError) {
                 console.error('GPS位置のIndexedDB保存エラー:', saveError);
@@ -189,7 +189,7 @@ export async function updatePosition(position) {
                     state.lastRecordedPoint.lat, state.lastRecordedPoint.lng,
                     lat, lng
                 );
-                console.log(`Skip record: Time=${elapsedSeconds.toFixed(1)}s, Dist=${distance.toFixed(1)}m, Acc=${accuracy.toFixed(1)}m`);
+
             }
         }
     }
@@ -265,13 +265,13 @@ export async function startTracking() {
             if (hasData) {
                 clearMapData();
                 await clearIndexedDBSilent();
-                console.log('IndexedDBを初期化しました');
+
             }
         } else if (result === 'append') {
-            console.log('既存データに追記します');
+
             state.setPreviousTotalPoints(trackStats.totalPoints);
         } else {
-            console.log('記録開始をキャンセルしました');
+
             return;
         }
     } catch (error) {
@@ -299,13 +299,13 @@ export async function startTracking() {
         if (state.db) {
             const trackId = await createInitialTrack(state.trackingStartTime);
             state.setCurrentTrackId(trackId);
-            console.log(`初期トラックを作成しました。ID: ${trackId}`);
+
         }
     } catch (e) {
         console.error('初期トラック作成エラー:', e);
     }
 
-    console.log('GPS記録開始時刻:', state.trackingStartTime);
+
 
     // Wake Lock取得
     await requestWakeLock();
@@ -316,7 +316,7 @@ export async function startTracking() {
             const permission = await DeviceOrientationEvent.requestPermission();
             if (permission === 'granted') {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-                console.log('DeviceOrientation許可が付与されました');
+
             }
         } catch (error) {
             console.error('DeviceOrientation許可要求エラー:', error);

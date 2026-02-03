@@ -65,7 +65,7 @@ export async function initMap() {
             (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                console.log('現在位置から地図を初期化します:', lat, lng);
+
                 const map = state.map;
                 if (map) {
                     map.setView([lat, lng], 16);
@@ -116,7 +116,7 @@ export async function initMap() {
     }).addTo(mapInstance);
     state.setTrackingPath(trackingPathInstance);
 
-    console.log('地図を初期化しました');
+
 }
 
 /**
@@ -130,7 +130,7 @@ export async function displayPhotoMarkers(onMarkerClick) {
         state.clearPhotoMarkers();
 
         const allPhotos = await getAllPhotos();
-        console.log(`IndexedDBから写真データを取得: ${allPhotos.length}件`);
+
 
         let markerCount = 0;
         allPhotos.forEach((photo, index) => {
@@ -155,7 +155,7 @@ export async function displayPhotoMarkers(onMarkerClick) {
             }
         });
 
-        console.log(`写真マーカーを${markerCount}個表示しました（全${allPhotos.length}件中）`);
+
     } catch (error) {
         console.error('写真マーカー表示エラー:', error);
     }
@@ -170,7 +170,7 @@ export async function displayPhotoMarkers(onMarkerClick) {
 export function clearMapData() {
     if (state.trackingPath) {
         state.trackingPath.setLatLngs([]);
-        console.log('トラックパスをクリアしました');
+
     }
 
     state.photoMarkers.forEach(marker => state.map.removeLayer(marker));
@@ -179,7 +179,7 @@ export function clearMapData() {
     state.routeMarkers.forEach(marker => state.map.removeLayer(marker));
     state.clearRouteMarkers();
 
-    console.log('写真マーカーとルートマーカーをクリアしました');
+
 }
 
 /**
@@ -245,7 +245,7 @@ export function removePhotoMarker(photoId) {
         const marker = state.photoMarkers[index];
         state.map.removeLayer(marker);
         state.photoMarkers.splice(index, 1);
-        console.log('マーカーを削除しました:', photoId);
+
     }
 }
 

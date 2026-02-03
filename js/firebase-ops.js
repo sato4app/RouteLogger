@@ -26,7 +26,7 @@ export async function saveToFirebase() {
             alert('認証されていません。ページを再読み込みしてください。');
             return;
         }
-        console.log('Firebase認証状態: ログイン済み');
+
 
         const baseProjectName = await showDocNameDialog(state.trackingStartTime);
         if (!baseProjectName) {
@@ -38,13 +38,13 @@ export async function saveToFirebase() {
         const projectName = await getUniqueProjectName(firestoreDb, baseProjectName);
         if (!projectName) return; // Cancelled or error
 
-        console.log('保存するルート名:', projectName);
+
 
         // データ取得
         const allTracks = await getAllTracks();
         const allPhotos = await getAllPhotos();
 
-        console.log('取得したデータ:', { tracks: allTracks.length, photos: allPhotos.length });
+
 
         const storage = firebase.storage();
 
@@ -147,7 +147,7 @@ export async function loadDocument(doc) {
         const data = doc.data;
 
         await clearIndexedDBSilent();
-        console.log('Reload前にIndexedDBをクリアしました');
+
 
         if (!state.db) {
             await initIndexedDB();
@@ -218,7 +218,7 @@ async function getUniqueProjectName(firestoreDb, baseName) {
             break;
         }
 
-        console.log(`ルート名 "${finalProjectName}" は既に存在します。連番を付けます。`);
+
         finalProjectName = `${baseName}_${counter}`;
         counter++;
 

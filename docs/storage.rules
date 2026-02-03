@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to read/write to 'projects' and 'tracks' folders
+    match /projects/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /tracks/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

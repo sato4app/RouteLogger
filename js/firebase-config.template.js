@@ -20,4 +20,4 @@ firebase.initializeApp(firebaseConfig);
 // Firestoreの参照を取得
 const db = firebase.firestore();
 
-console.log('Firebase初期化完了');
+

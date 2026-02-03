@@ -191,7 +191,7 @@ export async function capturePhoto() {
     const location = state.currentMarker ? state.currentMarker.getLatLng() : null;
     state.setCapturedPhotoLocation(location);
 
-    console.log(`写真撮影: ${PHOTO_WIDTH}x${PHOTO_HEIGHT}px にリサイズ（元: ${srcWidth}x${srcHeight}px）`);
+
 
     if (state.cameraStream) {
         state.cameraStream.getTracks().forEach(track => track.stop());
@@ -222,7 +222,7 @@ export async function capturePhoto() {
         const photoId = await savePhoto(photoRecord);
         state.setCurrentPhotoId(photoId);
         state.setPhotosInSession(state.photosInSession + 1);
-        console.log('写真を一時保存しました。ID:', photoId);
+
 
         if (location) {
             photoRecord.id = photoId;
@@ -259,7 +259,7 @@ export async function savePhotoWithDirection(direction) {
         });
 
         const stampedPhotoData = await drawArrowStamp(state.capturedPhotoData, direction);
-        console.log('矢印スタンプを画像に合成しました:', direction);
+
 
         // state.capturedPhotoLocation を使用 (撮影時の位置)
         const location = state.capturedPhotoLocation;
@@ -284,7 +284,7 @@ export async function savePhotoWithDirection(direction) {
             // 指示は「方向を上書きして」なので、データとしては最新の状態にするのが自然。
             await updatePhoto(photoRecord);
             photoId = state.currentPhotoId;
-            console.log('写真を更新しました。ID:', photoId, '方向:', direction);
+
 
             // 地図上のマーカーを更新（削除して追加）
             removePhotoMarker(photoId);
@@ -292,7 +292,7 @@ export async function savePhotoWithDirection(direction) {
             // 新規保存
             photoId = await savePhoto(photoRecord);
             state.setCurrentPhotoId(photoId);
-            console.log('写真を新規保存しました。ID:', photoId, '方向:', direction);
+
             state.setPhotosInSession(state.photosInSession + 1);
         }
 
@@ -332,7 +332,7 @@ export function handleTextButton() {
         currentPhotoText = text;
 
         if (text) {
-            console.log('メモが入力されました:', text);
+
         }
 
         // すでに保存済みの写真がある場合は、テキストを即時反映して保存
@@ -341,7 +341,7 @@ export function handleTextButton() {
                 if (photo) {
                     photo.text = currentPhotoText;
                     return updatePhoto(photo).then(() => {
-                        console.log('写真のテキストを更新しました。ID:', photo.id);
+
 
                         // マーカー更新
                         removePhotoMarker(photo.id);

@@ -23,4 +23,4 @@ const firestoreDb = firebase.firestore();
 // Storageの参照を取得
 const storage = firebase.storage();
 
-console.log('Firebase初期化完了');
+

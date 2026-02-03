@@ -18,29 +18,29 @@ export function initIndexedDB() {
 
         request.onsuccess = () => {
             state.setDb(request.result);
-            console.log('IndexedDB接続成功');
+
             resolve(request.result);
         };
 
         request.onupgradeneeded = (event) => {
             const database = event.target.result;
-            console.log('IndexedDBをアップグレード中...');
+
 
             if (!database.objectStoreNames.contains(STORE_TRACKS)) {
                 const trackStore = database.createObjectStore(STORE_TRACKS, { keyPath: 'id', autoIncrement: true });
                 trackStore.createIndex('timestamp', 'timestamp', { unique: false });
-                console.log('tracksストアを作成しました');
+
             }
 
             if (!database.objectStoreNames.contains(STORE_PHOTOS)) {
                 const photoStore = database.createObjectStore(STORE_PHOTOS, { keyPath: 'id', autoIncrement: true });
                 photoStore.createIndex('timestamp', 'timestamp', { unique: false });
-                console.log('photosストアを作成しました');
+
             }
 
             if (!database.objectStoreNames.contains(STORE_SETTINGS)) {
                 database.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
-                console.log('settingsストアを作成しました');
+
             }
         };
     });
@@ -63,7 +63,7 @@ export async function saveLastPosition(lat, lng, zoom) {
             timestamp: new Date().toISOString()
         };
         await store.put(positionData);
-        console.log('最終位置を保存しました:', lat.toFixed(5), lng.toFixed(5));
+
     } catch (error) {
         console.error('位置保存エラー:', error);
     }
@@ -87,10 +87,10 @@ export function getLastPosition() {
 
             request.onsuccess = () => {
                 if (request.result) {
-                    console.log('最終位置を取得しました:', request.result);
+
                     resolve(request.result);
                 } else {
-                    console.log('保存された位置がありません。デフォルト位置を使用します');
+
                     resolve(null);
                 }
             };
@@ -239,7 +239,7 @@ export function createInitialTrack(timestamp) {
         const request = store.add(trackData);
 
         request.onsuccess = () => {
-            console.log('初期トラックを作成しました。ID:', request.result);
+
             resolve(request.result);
         };
         request.onerror = () => reject(request.error);
@@ -302,7 +302,7 @@ export async function clearIndexedDBSilent() {
                 await new Promise((resolve, reject) => {
                     const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
                     deleteRequest.onsuccess = () => {
-                        console.log('IndexedDBを削除しました');
+
                         resolve();
                     };
                     deleteRequest.onerror = () => reject(deleteRequest.error);
@@ -315,24 +315,24 @@ export async function clearIndexedDBSilent() {
             } catch (deleteError) {
                 retryCount++;
                 if (retryCount >= maxRetries) throw deleteError;
-                console.log(`${200 * retryCount}ms 待機してリトライします...`);
+
                 await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
             }
         }
 
         await initIndexedDB();
-        console.log('IndexedDB再初期化完了');
+
 
         const tracksAfter = await getAllTracks();
         const photosAfter = await getAllPhotos();
-        console.log(`削除確認: トラック ${tracksAfter.length}件, 写真 ${photosAfter.length}件`);
+
 
         if (lastPosition) {
             await saveLastPosition(lastPosition.lat, lastPosition.lng, lastPosition.zoom);
-            console.log('最後の記録地点を復元しました');
+
         } else {
             await saveLastPosition(DEFAULT_POSITION.lat, DEFAULT_POSITION.lng, DEFAULT_POSITION.zoom);
-            console.log('デフォルト位置を設定しました');
+
         }
 
         state.setTrackingStartTime(null);
@@ -363,7 +363,7 @@ export async function clearIndexedDB() {
         const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
 
         deleteRequest.onsuccess = async () => {
-            console.log('IndexedDBを削除しました');
+
             await initIndexedDB();
 
             if (lastPosition) {
