@@ -4,3 +4,4 @@
 export * from './ui-common.js';
 export * from './ui-photo.js';
 export * from './ui-dialog.js';
+export * from './ui-settings.js';

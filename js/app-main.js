@@ -6,7 +6,7 @@ import { initMap, displayPhotoMarkers } from './map.js';
 import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrientation } from './tracking.js';
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
-import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls } from './ui.js';
+import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData } from './db.js';
 import { displayExternalGeoJSON } from './map.js';
@@ -15,6 +15,10 @@ import { displayExternalGeoJSON } from './map.js';
  * アプリケーション初期化
  */
 async function initApp() {
+    // 時計と設定の初期化
+    initClock();
+    initSettings();
+
     // Firebase匿名認証
     try {
 
@@ -110,7 +114,7 @@ function setupEventListeners() {
 
     // Settingsボタン
     document.getElementById('settingsBtn').addEventListener('click', () => {
-        alert('Settings menu is under construction');
+        showSettingsDialog();
     });
 
     // データ管理パネル

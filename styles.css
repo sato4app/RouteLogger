@@ -663,3 +663,114 @@ body {
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
+
+/* Clock Display */
+#clockDisplay {
+    position: absolute;
+    top: 50px;
+    /* Below zoom controls */
+    left: 12px;
+    z-index: 900;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.7);
+    padding: 4px 8px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+/* Settings Dialog */
+.settings-list {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-label {
+    flex: 1;
+}
+
+.setting-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.setting-desc {
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider {
+    background-color: var(--primary-color);
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(22px);
+}
+
+.slider.round {
+    border-radius: 28px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}

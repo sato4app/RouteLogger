@@ -58,7 +58,12 @@ export function setCapturedPhotoLocation(value) { capturedPhotoLocation = value;
 export function setPhotosInSession(value) { photosInSession = value; }
 export function setCurrentPhotoId(value) { currentPhotoId = value; }
 export function setDb(value) { db = value; }
+export function setDb(value) { db = value; }
 export function setFirebaseAuthReady(value) { firebaseAuthReady = value; }
+
+// Settings State
+export let isClockVisible = true;
+export function setIsClockVisible(value) { isClockVisible = value; }
 
 // 配列操作
 export function addPhotoMarker(marker) { photoMarkers.push(marker); }

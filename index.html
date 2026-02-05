@@ -229,6 +229,9 @@
         </div>
     </div>
 
+    <!-- Clock Display -->
+    <div id="clockDisplay">00:00</div>
+
     <!-- Load Selection Dialog -->
     <div id="loadSelectionDialog" class="modal-dialog hidden">
         <div class="modal-content">
@@ -253,6 +256,28 @@
             </div>
             <div class="modal-actions">
                 <button id="closeLoadSelectionBtn" class="secondary-btn" style="width: 100%;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Dialog -->
+    <div id="settingsDialog" class="modal-dialog hidden">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">Show Clock</div>
+                        <div class="setting-desc">Display current time on map</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showClockToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="closeSettingsBtn" class="primary-btn" style="width: 100%;">Close</button>
             </div>
         </div>
     </div>
