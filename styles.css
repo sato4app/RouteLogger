@@ -91,7 +91,8 @@ body {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 16px;
+    gap: 8px;
+    /* Reduced from 16px */
     padding: 12px 20px;
     background: var(--bg-glass);
     backdrop-filter: blur(20px);
