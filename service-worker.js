@@ -1,7 +1,7 @@
 // RouteLogger Service Worker
 // PWA対応: オフライン機能とキャッシュ管理
 
-const CACHE_NAME = 'routelogger-v4';
+const CACHE_NAME = 'routelogger-v5';
 const urlsToCache = [
   './',
   './index.html',

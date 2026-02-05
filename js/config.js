@@ -2,10 +2,11 @@
 
 // IndexedDB設定
 export const DB_NAME = 'RouteLoggerDB';
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 export const STORE_TRACKS = 'tracks';
 export const STORE_PHOTOS = 'photos';
 export const STORE_SETTINGS = 'settings';
+export const STORE_EXTERNALS = 'externals';
 
 // デフォルト位置（箕面大滝）
 export const DEFAULT_POSITION = {

@@ -7,6 +7,9 @@ import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrient
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls } from './ui.js';
+import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
+import { getAllExternalData } from './db.js';
+import { displayExternalGeoJSON } from './map.js';
 
 /**
  * アプリケーション初期化
@@ -57,6 +60,22 @@ async function initApp() {
     // イベントリスナー設定
     setupEventListeners();
 
+    // 外部データの読み込みと表示
+    try {
+        const externalDataList = await getAllExternalData();
+        if (externalDataList && externalDataList.length > 0) {
+            console.log(`外部データ ${externalDataList.length}件を復元中...`);
+            externalDataList.forEach(item => {
+                if (item.type === 'geojson') {
+                    displayExternalGeoJSON(item.data);
+                }
+            });
+            updateStatus(`外部データ ${externalDataList.length}件を復元しました`);
+        }
+    } catch (e) {
+        console.error('外部データ復元エラー:', e);
+    }
+
     // Service Worker登録
     registerServiceWorker();
 
@@ -100,8 +119,8 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    document.getElementById('dataReloadBtn').addEventListener('click', async () => {
-        await reloadFromFirebase();
+    document.getElementById('dataReloadBtn').addEventListener('click', () => {
+        showLoadSelectionDialog();
         returnToMainControl();
     });
 
@@ -125,7 +144,11 @@ function setupEventListeners() {
     setupDeviceOrientation();
 
     // Photo Viewer Navigation
+    // Photo Viewer Navigation
     initPhotoViewerControls();
+
+    // Load Selection Dialog Controls
+    initLoadDialogControls();
 }
 
 /**

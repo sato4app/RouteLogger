@@ -179,7 +179,8 @@ export function clearMapData() {
     state.routeMarkers.forEach(marker => state.map.removeLayer(marker));
     state.clearRouteMarkers();
 
-
+    state.externalLayers.forEach(layer => state.map.removeLayer(layer));
+    state.clearExternalLayers();
 }
 
 /**
@@ -279,6 +280,53 @@ export function removeCurrentMarker() {
     if (state.currentMarker) {
         state.map.removeLayer(state.currentMarker);
         state.setCurrentMarker(null);
+    }
+}
+
+/**
+ * 外部GeoJSONデータを表示
+ * @param {Object} geoJson - GeoJSONデータ
+ */
+export function displayExternalGeoJSON(geoJson) {
+    if (!state.map) return;
+
+    try {
+        const layer = L.geoJSON(geoJson, {
+            style: function (feature) {
+                // デフォルトスタイル: オレンジ色で少し太め
+                return {
+                    color: '#FF6D00',
+                    weight: 4,
+                    opacity: 0.7,
+                    fillOpacity: 0.2
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    let popupContent = '';
+                    if (feature.properties.name) {
+                        popupContent += `<b>${feature.properties.name}</b><br>`;
+                    }
+                    if (feature.properties.description) {
+                        popupContent += `${feature.properties.description}`;
+                    }
+                    if (popupContent) {
+                        layer.bindPopup(popupContent);
+                    }
+                }
+            }
+        }).addTo(state.map);
+
+        state.addExternalLayer(layer);
+
+        // データの範囲に合わせてズーム
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+            state.map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    } catch (error) {
+        console.error('GeoJSON表示エラー:', error);
+        alert('GeoJSONデータの表示に失敗しました');
     }
 }
 

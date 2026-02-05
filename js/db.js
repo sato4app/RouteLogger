@@ -1,6 +1,6 @@
 // RouteLogger - IndexedDB操作
 
-import { DB_NAME, DB_VERSION, STORE_TRACKS, STORE_PHOTOS, STORE_SETTINGS, DEFAULT_POSITION } from './config.js';
+import { DB_NAME, DB_VERSION, STORE_TRACKS, STORE_PHOTOS, STORE_SETTINGS, STORE_EXTERNALS, DEFAULT_POSITION } from './config.js';
 import * as state from './state.js';
 
 /**
@@ -40,7 +40,10 @@ export function initIndexedDB() {
 
             if (!database.objectStoreNames.contains(STORE_SETTINGS)) {
                 database.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
+            }
 
+            if (!database.objectStoreNames.contains(STORE_EXTERNALS)) {
+                database.createObjectStore(STORE_EXTERNALS, { keyPath: 'id', autoIncrement: true });
             }
         };
     });
@@ -391,4 +394,59 @@ export async function clearIndexedDB() {
         console.error('IndexedDB初期化エラー:', error);
         alert('IndexedDBの初期化に失敗しました: ' + error.message);
     }
+}
+
+/**
+ * 外部データを保存
+ * @param {string} type - データタイプ ('geojson'など)
+ * @param {string} name - ファイル名
+ * @param {Object} data - データ内容
+ * @returns {Promise<number>} 保存されたID
+ */
+export function saveExternalData(type, name, data) {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            reject(new Error('データベースが初期化されていません'));
+            return;
+        }
+
+        const externalData = {
+            type: type,
+            name: name,
+            data: data,
+            timestamp: new Date().toISOString()
+        };
+
+        const transaction = state.db.transaction([STORE_EXTERNALS], 'readwrite');
+        const store = transaction.objectStore(STORE_EXTERNALS);
+        const request = store.add(externalData);
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
+ * 全ての外部データを取得
+ * @returns {Promise<Array>}
+ */
+export function getAllExternalData() {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            resolve([]); // DB未初期化時は空配列を返す
+            return;
+        }
+
+        try {
+            const transaction = state.db.transaction([STORE_EXTERNALS], 'readonly');
+            const store = transaction.objectStore(STORE_EXTERNALS);
+            const request = store.getAll();
+
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => reject(request.error);
+        } catch (error) {
+            console.warn('外部データ取得エラー:', error);
+            resolve([]); // エラー時は空配列で続行
+        }
+    });
 }

@@ -5,6 +5,7 @@ export let map = null;
 export let currentMarker = null;
 export let trackingPath = null;
 export let photoMarkers = [];
+export let externalLayers = [];
 
 // GPS追跡関連
 export let watchId = null;
@@ -76,3 +77,7 @@ export let officialMarkers = [];
 export function setOfficialMarkers(value) { officialMarkers = value; }
 export function addOfficialMarker(marker) { officialMarkers.push(marker); }
 export function clearOfficialMarkers() { officialMarkers = []; }
+
+// External Layers
+export function addExternalLayer(layer) { externalLayers.push(layer); }
+export function clearExternalLayers() { externalLayers = []; }
