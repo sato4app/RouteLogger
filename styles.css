@@ -667,9 +667,9 @@ body {
 /* Clock Display */
 #clockDisplay {
     position: absolute;
-    top: 50px;
+    top: 120px;
     /* Below zoom controls */
-    left: 60px;
+    left: 12px;
     z-index: 900;
     font-size: 28px;
     font-weight: 700;
