@@ -669,7 +669,7 @@ body {
     position: absolute;
     top: 50px;
     /* Below zoom controls */
-    left: 12px;
+    left: 60px;
     z-index: 900;
     font-size: 28px;
     font-weight: 700;
