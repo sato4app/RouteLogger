@@ -108,6 +108,11 @@ function setupEventListeners() {
     // Dataボタン（パネル表示切り替え）
     document.getElementById('dataBtn').addEventListener('click', toggleDataPanel);
 
+    // Setupボタン
+    document.getElementById('setupBtn').addEventListener('click', () => {
+        alert('Setup menu is under construction');
+    });
+
     // データ管理パネル
     document.getElementById('photoListBtn').addEventListener('click', async () => {
         await showPhotoList();

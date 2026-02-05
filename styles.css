@@ -198,6 +198,10 @@ body {
     background: #5856D6;
 }
 
+.setup-icon {
+    background: #607D8B;
+}
+
 /* Dialogs */
 .modal-dialog {
     position: fixed;
