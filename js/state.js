@@ -58,7 +58,7 @@ export function setCapturedPhotoLocation(value) { capturedPhotoLocation = value;
 export function setPhotosInSession(value) { photosInSession = value; }
 export function setCurrentPhotoId(value) { currentPhotoId = value; }
 export function setDb(value) { db = value; }
-export function setDb(value) { db = value; }
+
 export function setFirebaseAuthReady(value) { firebaseAuthReady = value; }
 
 // Settings State
