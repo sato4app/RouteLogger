@@ -107,14 +107,16 @@ body {
 #dataPanel {
     bottom: 120px;
     /* Position above controls */
+    left: auto;
+    right: 20px;
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translateY(20px);
     pointer-events: none;
 }
 
 #dataPanel:not(.hidden) {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
     pointer-events: auto;
 }
 
@@ -667,9 +669,12 @@ body {
 /* Clock Display */
 #clockDisplay {
     position: absolute;
-    top: 120px;
+    top: auto;
+    bottom: 140px;
+    /* Position above start button */
+    left: 50%;
+    transform: translateX(-50%);
     /* Below zoom controls */
-    left: 12px;
     z-index: 900;
     font-size: 28px;
     font-weight: 700;
