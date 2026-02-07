@@ -256,6 +256,27 @@ export function createInitialTrack(timestamp) {
 }
 
 /**
+ * トラックデータを復元（インポート用）
+ * @param {Object} trackData
+ */
+export function restoreTrack(trackData) {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            reject(new Error('データベースが初期化されていません'));
+            return;
+        }
+        const transaction = state.db.transaction([STORE_TRACKS], 'readwrite');
+        const store = transaction.objectStore(STORE_TRACKS);
+        // IDは自動採番されるので、timestamp等で管理
+        // インポートデータにIDがあっても無視して新規採番推奨
+        delete trackData.id;
+        const request = store.add(trackData);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
  * トラッキングデータをリアルタイム保存 (ID指定で更新)
  */
 export async function saveTrackingDataRealtime() {
