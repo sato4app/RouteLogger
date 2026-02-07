@@ -2,6 +2,7 @@ import { toggleVisibility, updateStatus } from './ui-common.js';
 import { reloadFromFirebase } from './firebase-ops.js';
 import { saveExternalData } from './db.js';
 import { displayExternalGeoJSON } from './map.js';
+import { importKmz } from './kmz-handler.js';
 
 /**
  * データ選択ダイアログを表示
@@ -38,8 +39,21 @@ export function initLoadDialogControls() {
     };
 
     document.getElementById('loadExtKmzBtn').onclick = () => {
-        alert('外部KMZファイルの表示は現在実装されていません。\n(Not implemented yet)');
+        closeLoadSelectionDialog();
+        // Hidden file input for KMZ
+        const kmzInput = document.getElementById('kmzInput');
+        if (kmzInput) {
+            kmzInput.click();
+        } else {
+            console.error('KMZ input element not found');
+        }
     };
+
+    // File input handler for KMZ
+    const kmzInput = document.getElementById('kmzInput');
+    if (kmzInput) {
+        kmzInput.onchange = handleKmzUpload;
+    }
 
     document.getElementById('closeLoadSelectionBtn').onclick = closeLoadSelectionDialog;
 
@@ -91,4 +105,32 @@ async function handleGeoJSONUpload(event) {
     };
 
     reader.readAsText(file);
+}
+
+/**
+ * KMZアップロード処理
+ */
+async function handleKmzUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    updateStatus('KMZ読み込み中...');
+
+    try {
+        // KMZインポート実行
+        const geoJson = await importKmz(file);
+
+        // 地図に表示
+        displayExternalGeoJSON(geoJson);
+
+        updateStatus('KMZを表示しました');
+        alert(`読み込み完了: ${file.name}`);
+
+    } catch (error) {
+        console.error('KMZ読み込みエラー:', error);
+        alert('KMZの読み込みに失敗しました: ' + error.message);
+        updateStatus('読み込み失敗');
+    } finally {
+        event.target.value = '';
+    }
 }

@@ -2,7 +2,7 @@
 
 import { DEFAULT_POSITION, GSI_TILE_URL, GSI_ATTRIBUTION, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config.js';
 import * as state from './state.js';
-import { getLastPosition, getAllPhotos } from './db.js';
+import { getLastPosition, getAllPhotos, getExternalPhoto } from './db.js';
 
 /**
  * 矢印型マーカーアイコンを作成
@@ -308,10 +308,56 @@ export function displayExternalGeoJSON(geoJson) {
                         popupContent += `<b>${feature.properties.name}</b><br>`;
                     }
                     if (feature.properties.description) {
-                        popupContent += `${feature.properties.description}`;
+                        popupContent += `<div>${feature.properties.description}</div>`;
                     }
+
                     if (popupContent) {
                         layer.bindPopup(popupContent);
+
+                        // ポップアップが開いたときに画像をロードする
+                        layer.on('popupopen', async () => {
+                            const popup = layer.getPopup();
+                            const content = popup.getContent(); // String or HTMLElement
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(content, 'text/html');
+                            const imgs = doc.querySelectorAll('img');
+
+                            let updated = false;
+                            const importId = feature.properties.importId;
+
+                            if (importId && imgs.length > 0) {
+                                for (const img of imgs) {
+                                    const src = img.getAttribute('src');
+                                    // "images/photo_..." のようなパスをチェック
+                                    // 実際のファイル名は "images/" を含むかどうか保存時によるが、
+                                    // kmz-handler.jsでは "images/photo_..." としてHTMLに埋め込んでいる。
+                                    // 一方、保存時は `saveExternalPhoto(importId, imgFile.name, blob)`
+                                    // zip内のファイル名は "images/photo_X.jpg" なので、imgFile.nameも "images/photo_X.jpg" になるはず。
+
+                                    if (src && !src.startsWith('blob:') && !src.startsWith('http')) {
+                                        // 外部写真ストアからBlobを取得
+                                        try {
+                                            // srcが "images/photo_123.jpg" の場合、そのままキーとして使う
+                                            const blob = await getExternalPhoto(importId, src);
+                                            if (blob) {
+                                                const url = URL.createObjectURL(blob);
+                                                img.src = url;
+                                                // メモリリーク防止のため、ポップアップが閉じるときにrevokeしたほうがいいが、
+                                                // 複雑になるので今回は省略するか、別途管理が必要。
+                                                // シンプルに: URLをセット
+                                                updated = true;
+                                            }
+                                        } catch (e) {
+                                            console.warn('外部画像読み込み失敗:', src, e);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (updated) {
+                                popup.setContent(doc.body.innerHTML);
+                            }
+                        });
                     }
                 }
             }

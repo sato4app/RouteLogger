@@ -8,8 +8,9 @@ import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, han
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
-import { getAllExternalData } from './db.js';
+import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
 import { displayExternalGeoJSON } from './map.js';
+import { exportToKmz } from './kmz-handler.js';
 
 /**
  * アプリケーション初期化
@@ -134,7 +135,23 @@ function setupEventListeners() {
     });
 
     document.getElementById('dataSaveBtn').addEventListener('click', async () => {
-        await saveToFirebase();
+        // 保存方法の選択（簡易的な実装）
+        // 将来的には専用ダイアログにすることを検討
+        const choice = confirm('クラウド(Firebase)に保存しますか？\n[キャンセル]を選ぶとKMZファイルとして保存します。');
+
+        if (choice) {
+            await saveToFirebase();
+        } else {
+            // KMZ保存
+            try {
+                const tracks = await getAllTracks();
+                const photos = await getAllPhotos();
+                await exportToKmz(tracks, photos);
+            } catch (e) {
+                console.error('エクスポートエラー:', e);
+                alert('エクスポートに失敗しました: ' + e.message);
+            }
+        }
         returnToMainControl();
     });
 

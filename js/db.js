@@ -1,6 +1,6 @@
 // RouteLogger - IndexedDB操作
 
-import { DB_NAME, DB_VERSION, STORE_TRACKS, STORE_PHOTOS, STORE_SETTINGS, STORE_EXTERNALS, DEFAULT_POSITION } from './config.js';
+import { DB_NAME, DB_VERSION, STORE_TRACKS, STORE_PHOTOS, STORE_SETTINGS, STORE_EXTERNALS, STORE_EXTERNAL_PHOTOS, DEFAULT_POSITION } from './config.js';
 import * as state from './state.js';
 
 /**
@@ -44,6 +44,12 @@ export function initIndexedDB() {
 
             if (!database.objectStoreNames.contains(STORE_EXTERNALS)) {
                 database.createObjectStore(STORE_EXTERNALS, { keyPath: 'id', autoIncrement: true });
+            }
+
+            if (!database.objectStoreNames.contains(STORE_EXTERNAL_PHOTOS)) {
+                const photoStore = database.createObjectStore(STORE_EXTERNAL_PHOTOS, { keyPath: 'id', autoIncrement: true });
+                // インポートIDやファイル名で検索できるようにインデックスを作成（必要に応じて）
+                photoStore.createIndex('importId', 'importId', { unique: false });
             }
         };
     });
@@ -448,5 +454,69 @@ export function getAllExternalData() {
             console.warn('外部データ取得エラー:', error);
             resolve([]); // エラー時は空配列で続行
         }
+    });
+}
+
+/**
+ * 外部写真データを保存
+ * @param {string} importId - インポートID
+ * @param {string} fileName - ファイル名
+ * @param {Blob} blob - 写真データ
+ * @returns {Promise<number>} 保存されたID
+ */
+export function saveExternalPhoto(importId, fileName, blob) {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            reject(new Error('データベースが初期化されていません'));
+            return;
+        }
+
+        const photoData = {
+            importId: importId,
+            fileName: fileName,
+            blob: blob,
+            timestamp: new Date().toISOString()
+        };
+
+        const transaction = state.db.transaction([STORE_EXTERNAL_PHOTOS], 'readwrite');
+        const store = transaction.objectStore(STORE_EXTERNAL_PHOTOS);
+        const request = store.add(photoData);
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+/**
+ * 外部写真データを取得
+ * @param {string} importId - インポートID
+ * @param {string} fileName - ファイル名
+ * @returns {Promise<Blob|null>} 写真データ
+ */
+export function getExternalPhoto(importId, fileName) {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            reject(new Error('データベースが初期化されていません'));
+            return;
+        }
+
+        const transaction = state.db.transaction([STORE_EXTERNAL_PHOTOS], 'readonly');
+        const store = transaction.objectStore(STORE_EXTERNAL_PHOTOS);
+        const index = store.index('importId');
+        const request = index.getAll(importId);
+
+        request.onsuccess = () => {
+            const results = request.result;
+            if (results && results.length > 0) {
+                const photo = results.find(p => p.fileName === fileName);
+                if (photo) {
+                    resolve(photo.blob);
+                } else {
+                    resolve(null);
+                }
+            } else {
+                resolve(null);
+            }
+        };
+        request.onerror = () => reject(request.error);
     });
 }
