@@ -105,7 +105,7 @@ body {
 }
 
 #dataPanel {
-    bottom: 120px;
+    bottom: 110px;
     /* Position above controls */
     left: 50%;
     transform: translate(-50%, 20px);
@@ -674,7 +674,7 @@ body {
 #clockDisplay {
     position: absolute;
     top: auto;
-    bottom: 150px;
+    bottom: 130px;
     /* Aligned slightly above buttons */
     left: 50%;
     transform: translateX(-50%);
