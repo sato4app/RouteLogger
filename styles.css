@@ -107,16 +107,15 @@ body {
 #dataPanel {
     bottom: 120px;
     /* Position above controls */
-    left: auto;
-    right: 20px;
+    left: 50%;
+    transform: translate(-50%, 20px);
     opacity: 0;
-    transform: translateY(20px);
     pointer-events: none;
 }
 
 #dataPanel:not(.hidden) {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
     pointer-events: auto;
 }
 
@@ -132,6 +131,11 @@ body {
     padding: 0;
     transition: transform 0.2s;
     min-width: 60px;
+}
+
+.action-btn.spacer {
+    pointer-events: none;
+    cursor: default;
 }
 
 .action-btn:active {
@@ -670,11 +674,12 @@ body {
 #clockDisplay {
     position: absolute;
     top: auto;
-    bottom: 140px;
-    /* Position above start button */
+    bottom: 130px;
+    /* Aligned slightly above buttons */
     left: 50%;
     transform: translateX(-50%);
-    /* Below zoom controls */
+    margin-left: -136px;
+    /* Offset for first column */
     z-index: 900;
     font-size: 28px;
     font-weight: 700;
