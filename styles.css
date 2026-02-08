@@ -312,9 +312,9 @@ body {
 }
 
 .wide-action-btn .icon-box {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
     box-shadow: none;
     /* remove shadow for cleaner look inside pill? or keep */
     background: none;
@@ -325,8 +325,21 @@ body {
 /* Use specific selector if .wide-action-btn .icon-box needs change */
 
 .wide-action-btn .icon-box svg {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
+    stroke-width: 2;
+    /* Ensure visibility */
+}
+
+/* Specific colors for wide action buttons */
+.wide-action-btn .cloud-icon {
+    color: #007AFF;
+    /* Apple Blue */
+}
+
+.wide-action-btn .kmz-icon {
+    color: #34C759;
+    /* Apple Green */
 }
 
 .wide-action-btn span {
