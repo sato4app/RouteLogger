@@ -376,3 +376,23 @@ export function displayExternalGeoJSON(geoJson) {
     }
 }
 
+/**
+ * 全てのトラックデータを表示
+ * @param {Array} tracks - トラックデータの配列
+ */
+export function displayAllTracks(tracks) {
+    if (!state.map || !tracks) return;
+
+    tracks.forEach(track => {
+        if (track.points && track.points.length > 0) {
+            const latlngs = track.points.map(p => [p.lat, p.lng]);
+            const polyline = L.polyline(latlngs, {
+                color: '#000080',
+                weight: 4,
+                opacity: 0.5 // 過去のログは少し薄くする
+            }).addTo(state.map);
+
+            state.addExternalLayer(polyline);
+        }
+    });
+}

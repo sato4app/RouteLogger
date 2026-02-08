@@ -9,7 +9,7 @@ import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
-import { displayExternalGeoJSON } from './map.js';
+import { displayExternalGeoJSON, displayAllTracks } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
 
 /**
@@ -58,9 +58,31 @@ async function initApp() {
     // 地図初期化
     await initMap();
 
+    // トラックデータ表示
+    try {
+        const allTracks = await getAllTracks();
+        if (allTracks && allTracks.length > 0) {
+            // import { displayAllTracks } from './map.js'; が必要だが、
+            // app-main.jsの冒頭でimportを追加する必要がある。
+            // ここでは関数が使えることを前提に記述し、別途importを追加する修正を行うか、
+            // あるいはこのブロック内で動的にimportするか...
+            // いや、replace_file_contentでimport文も同時に修正するのがベスト。
+            // しかしAllowMultiple=trueなら可能。
+
+            // displayAllTracksはmap.jsからエクスポートされている必要がある。
+            // 先ほどの修正で追加した。
+            displayAllTracks(allTracks);
+
+            // 最後の位置情報を復元（カメラ移動）
+            // initMapでやっているが、トラック表示後に合わせるならfitBoundsも検討
+            // 今回はinitMapの挙動（現在地または保存されたラスト位置）を優先
+        }
+    } catch (e) {
+        console.error('トラックデータ表示エラー:', e);
+    }
+
     // 写真マーカー表示
-    // prompt.mdの指示により初期表示を無効化
-    // await displayPhotoMarkers(showPhotoFromMarker);
+    await displayPhotoMarkers(showPhotoFromMarker);
 
     // イベントリスナー設定
     setupEventListeners();
