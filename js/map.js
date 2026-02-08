@@ -292,8 +292,20 @@ export function displayExternalGeoJSON(geoJson) {
 
     try {
         const layer = L.geoJSON(geoJson, {
+            // ポイントデータの表示スタイル設定
+            pointToLayer: function (feature, latlng) {
+                // 緑色の円形マーカー
+                return L.circleMarker(latlng, {
+                    radius: 8,
+                    fillColor: "#00FF00", // 緑
+                    color: "#FFFFFF",     // 白枠
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+            },
             style: function (feature) {
-                // デフォルトスタイル: オレンジ色で少し太め
+                // デフォルトスタイル: オレンジ色で少し太め (LineStringやPolygon用)
                 return {
                     color: '#FF6D00',
                     weight: 4,
@@ -304,9 +316,22 @@ export function displayExternalGeoJSON(geoJson) {
             onEachFeature: function (feature, layer) {
                 if (feature.properties) {
                     let popupContent = '';
-                    if (feature.properties.name) {
-                        popupContent += `<b>${feature.properties.name}</b><br>`;
+
+                    // IDとNameの表示 (ポイントデータの場合を重視)
+                    const id = feature.id || feature.properties.id || feature.properties.importId || 'No ID';
+                    const name = feature.properties.name || 'No Name';
+
+                    // GeoJSONのPointの場合、IDとNameを明示的に表示
+                    if (feature.geometry && feature.geometry.type === 'Point') {
+                        popupContent += `<b>ID:</b> ${id}<br>`;
+                        popupContent += `<b>Name:</b> ${name}<br>`;
+                    } else {
+                        // ラインなどの場合は従来通りNameがあれば表示
+                        if (feature.properties.name) {
+                            popupContent += `<b>${feature.properties.name}</b><br>`;
+                        }
                     }
+
                     if (feature.properties.description) {
                         popupContent += `<div>${feature.properties.description}</div>`;
                     }
