@@ -87,7 +87,7 @@ body {
 /* Panels (Controls & Data) */
 .panel {
     position: absolute;
-    bottom: env(safe-area-inset-bottom, 30px);
+    bottom: calc(env(safe-area-inset-bottom, 30px) + 5px);
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -131,8 +131,8 @@ body {
 #dataPanel {
     position: absolute;
     /* Was in .panel */
-    bottom: calc(env(safe-area-inset-bottom, 30px) + 104px);
-    /* Controls height ~94px + 10px gap */
+    bottom: calc(env(safe-area-inset-bottom, 30px) + 109px);
+    /* Controls height ~94px + 10px gap + 5px offset */
     /* Position above controls */
     left: 50%;
     transform: translate(-50%, 20px);
