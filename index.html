@@ -45,6 +45,35 @@
 
     <!-- Data Panel (Hidden by default) -->
     <div id="dataPanel" class="hidden">
+        <!-- Row 3: Load Options (Hidden initially) -->
+        <div id="loadOptionsRow" class="data-row hidden glass-panel">
+            <!-- Spacer to align with Start button/Spacer in Row 2 -->
+            <div class="action-btn spacer" style="visibility: hidden;"></div>
+            <button id="cloudLoadBtn" class="wide-action-btn" title="Load from Cloud">
+                <div class="icon-box cloud-dl-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <span>from Cloud...</span>
+            </button>
+            <button id="kmzLoadBtn" class="wide-action-btn" title="Load from KMZ File">
+                <div class="icon-box kmz-import-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <path d="M12 18v-6"></path>
+                        <path d="M9 15l3 3 3-3"></path>
+                    </svg>
+                </div>
+                <span>from File(KMZ)...</span>
+            </button>
+        </div>
+
         <!-- Row 3: Save Options (Hidden initially) -->
         <div id="saveOptionsRow" class="data-row hidden glass-panel">
             <!-- Spacer to align with Start button/Spacer in Row 2 -->

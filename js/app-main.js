@@ -151,10 +151,68 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    document.getElementById('dataReloadBtn').addEventListener('click', () => {
-        showLoadSelectionDialog();
-        returnToMainControl();
-    });
+    // Repurposed Load Button to toggle load options
+    const dataReloadBtn = document.getElementById('dataReloadBtn');
+    if (dataReloadBtn) {
+        dataReloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const loadOptionsRow = document.getElementById('loadOptionsRow');
+            const saveOptionsRow = document.getElementById('saveOptionsRow');
+
+            if (loadOptionsRow.classList.contains('hidden')) {
+                loadOptionsRow.classList.remove('hidden');
+                // Hide save options if open
+                if (saveOptionsRow) saveOptionsRow.classList.add('hidden');
+            } else {
+                loadOptionsRow.classList.add('hidden');
+            }
+        });
+    }
+
+    // Cloud Load Button
+    const cloudLoadBtn = document.getElementById('cloudLoadBtn');
+    if (cloudLoadBtn) {
+        cloudLoadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Reuse existing load dialog logic
+            showLoadSelectionDialog();
+        });
+    }
+
+    // KMZ Load Button
+    const kmzLoadBtn = document.getElementById('kmzLoadBtn');
+    if (kmzLoadBtn) {
+        kmzLoadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Trigger hidden file input for KMZ import
+            let fileInput = document.getElementById('kmzFileInput');
+            if (!fileInput) {
+                fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.id = 'kmzFileInput';
+                fileInput.accept = '.kmz,.kml';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
+
+                fileInput.addEventListener('change', async (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            const { importKmz } = await import('./kmz-handler.js');
+                            await importKmz(file);
+                            alert('KMZ loaded successfully');
+                        } catch (err) {
+                            console.error('Error importing KMZ:', err);
+                            alert('Failed to import KMZ: ' + err.message);
+                        }
+                        // Reset input
+                        fileInput.value = '';
+                    }
+                });
+            }
+            fileInput.click();
+        });
+    }
 
     // New Cloud Save Button
     document.getElementById('cloudSaveBtn').addEventListener('click', async () => {
@@ -190,8 +248,16 @@ function setupEventListeners() {
     if (dataSaveBtn) {
         dataSaveBtn.addEventListener('click', () => {
             const saveOptionsRow = document.getElementById('saveOptionsRow');
+            const loadOptionsRow = document.getElementById('loadOptionsRow');
+
             if (saveOptionsRow) {
-                saveOptionsRow.classList.toggle('hidden');
+                if (saveOptionsRow.classList.contains('hidden')) {
+                    saveOptionsRow.classList.remove('hidden');
+                    // Hide load options if open
+                    if (loadOptionsRow) loadOptionsRow.classList.add('hidden');
+                } else {
+                    saveOptionsRow.classList.add('hidden');
+                }
             }
         });
     }
@@ -230,6 +296,16 @@ function toggleDataPanel() {
         const saveOptionsRow = document.getElementById('saveOptionsRow');
         if (saveOptionsRow) {
             saveOptionsRow.classList.add('hidden');
+        }
+        const loadOptionsRow = document.getElementById('loadOptionsRow');
+        if (loadOptionsRow) {
+            loadOptionsRow.classList.add('hidden');
+        }
+        if (saveOptionsRow) {
+            saveOptionsRow.classList.add('hidden');
+        }
+        if (loadOptionsRow) {
+            loadOptionsRow.classList.add('hidden');
         }
     } else {
         dataPanel.classList.add('hidden');
