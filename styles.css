@@ -209,6 +209,81 @@ body {
     background: #607D8B;
 }
 
+.cloud-icon {
+    background: #007AFF;
+    /* Apple Blue */
+}
+
+.kmz-icon {
+    background: #34C759;
+    /* Apple Green */
+}
+
+/* Data Panel Layout */
+#dataPanel {
+    flex-direction: row;
+    /* Ensure row layout for columns */
+    align-items: stretch;
+}
+
+.panel-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.button-row {
+    display: flex;
+    gap: 8px;
+}
+
+.wide-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0;
+    width: 100%;
+    /* Fill the column width */
+    height: 100%;
+    /* Try to match height if needed, but flex handles it */
+    min-height: 80px;
+    /* Make it taller to match 2 buttons */
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s;
+}
+
+.wide-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    /* Subtle hover effect */
+}
+
+.wide-action-btn:active {
+    transform: scale(0.98);
+}
+
+.wide-action-btn .icon-box {
+    width: 40px;
+    /* Slightly smaller icon container inside wide btn? or keep same */
+    height: 40px;
+    font-size: 20px;
+}
+
+.wide-action-btn .icon-box svg {
+    width: 20px;
+    height: 20px;
+}
+
+.wide-action-btn span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
 /* Dialogs */
 .modal-dialog {
     position: fixed;

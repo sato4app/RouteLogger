@@ -6,8 +6,9 @@ import { saveExternalData, saveExternalPhoto } from './db.js';
  * TracksとPhotosからKMZファイルを生成してダウンロード
  * @param {Array} tracks - トラックデータの配列
  * @param {Array} photos - 写真データの配列
+ * @param {string} [filename] - ファイル名 (拡張子なし)
  */
-export async function exportToKmz(tracks, photos) {
+export async function exportToKmz(tracks, photos, filename) {
   if (!tracks || tracks.length === 0) {
     alert('エクスポートするトラックデータがありません。');
     return;
@@ -37,9 +38,17 @@ export async function exportToKmz(tracks, photos) {
   // Zipを生成してダウンロード
   try {
     const content = await zip.generateAsync({ type: "blob" });
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const fileName = `RouteLog_${dateStr}.kmz`;
-    saveAs(content, fileName);
+
+    let downloadName;
+    if (filename) {
+      // 拡張子がなければ付ける
+      downloadName = filename.endsWith('.kmz') ? filename : `${filename}.kmz`;
+    } else {
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      downloadName = `RouteLog_${dateStr}.kmz`;
+    }
+
+    saveAs(content, downloadName);
   } catch (e) {
     console.error('KMZ生成エラー:', e);
     alert('KMZファイルの生成に失敗しました。');

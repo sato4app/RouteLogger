@@ -6,7 +6,7 @@ import { initMap, displayPhotoMarkers } from './map.js';
 import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrientation } from './tracking.js';
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
-import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog } from './ui.js';
+import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks } from './map.js';
@@ -156,15 +156,40 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    document.getElementById('dataSaveBtn').addEventListener('click', async () => {
-        // 保存方法の選択（簡易的な実装）
-        // 将来的には専用ダイアログにすることを検討
-        const choice = confirm('クラウド(Firebase)に保存しますか？\n[キャンセル]を選ぶとKMZファイルとして保存します。');
+    // New Cloud Save Button
+    document.getElementById('cloudSaveBtn').addEventListener('click', async () => {
+        const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+        const docName = await showDocNameDialog(defaultName);
 
-        if (choice) {
-            await saveToFirebase();
-        } else {
-            // KMZ保存
+        if (docName) {
+            await saveToFirebase(docName);
+        }
+        returnToMainControl();
+    });
+
+    // New KMZ Save Button
+    document.getElementById('kmzSaveBtn').addEventListener('click', async () => {
+        const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+        const docName = await showDocNameDialog(defaultName);
+
+        if (docName) {
+            try {
+                const tracks = await getAllTracks();
+                const photos = await getAllPhotos();
+                await exportToKmz(tracks, photos, docName);
+            } catch (e) {
+                console.error('エクスポートエラー:', e);
+                alert('エクスポートに失敗しました: ' + e.message);
+            }
+        }
+        returnToMainControl();
+    });
+
+    // Legacy Save Button (Hidden but kept for safety/compatibility if needed)
+    const dataSaveBtn = document.getElementById('dataSaveBtn');
+    if (dataSaveBtn) {
+        dataSaveBtn.addEventListener('click', async () => {
+            // Default to KMZ for legacy button w/o dialog
             try {
                 const tracks = await getAllTracks();
                 const photos = await getAllPhotos();
@@ -173,9 +198,9 @@ function setupEventListeners() {
                 console.error('エクスポートエラー:', e);
                 alert('エクスポートに失敗しました: ' + e.message);
             }
-        }
-        returnToMainControl();
-    });
+            returnToMainControl();
+        });
+    }
 
 
 

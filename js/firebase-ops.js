@@ -9,8 +9,9 @@ import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromM
 
 /**
  * IndexedDBのデータをFirebaseに保存
+ * @param {string} [providedName] - 指定されたドキュメント名 (Optional)
  */
-export async function saveToFirebase() {
+export async function saveToFirebase(providedName) {
     if (!state.trackingStartTime) {
         alert('記録データがありません。先にGPS記録を開始してください。');
         return;
@@ -27,8 +28,11 @@ export async function saveToFirebase() {
             return;
         }
 
+        let baseProjectName = providedName;
+        if (!baseProjectName) {
+            baseProjectName = await showDocNameDialog(state.trackingStartTime);
+        }
 
-        const baseProjectName = await showDocNameDialog(state.trackingStartTime);
         if (!baseProjectName) {
             updateStatus('保存をキャンセルしました');
             return;
