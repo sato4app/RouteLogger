@@ -184,13 +184,13 @@ function setupEventListeners() {
     if (kmzLoadBtn) {
         kmzLoadBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Trigger hidden file input for KMZ import
+            // Trigger hidden file input for KMZ/GeoJSON import
             let fileInput = document.getElementById('kmzFileInput');
             if (!fileInput) {
                 fileInput = document.createElement('input');
                 fileInput.type = 'file';
                 fileInput.id = 'kmzFileInput';
-                fileInput.accept = '.kmz,.kml';
+                fileInput.accept = '.kmz,.kml,.geojson,.json';
                 fileInput.style.display = 'none';
                 document.body.appendChild(fileInput);
 
@@ -198,12 +198,25 @@ function setupEventListeners() {
                     const file = event.target.files[0];
                     if (file) {
                         try {
-                            const { importKmz } = await import('./kmz-handler.js');
-                            await importKmz(file);
-                            alert('KMZ loaded successfully');
+                            const { importKmz, importGeoJson } = await import('./kmz-handler.js');
+
+                            if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
+                                await importKmz(file);
+                                alert('KMZ loaded successfully');
+                                // Refresh to show data (as per kmz logic)
+                                location.reload();
+                            } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+                                const geojson = await importGeoJson(file);
+                                // Display GeoJSON
+                                displayExternalGeoJSON(geojson);
+                                updateStatus('外部データを表示しました');
+                                alert(`GeoJSON loaded successfully: ${file.name}`);
+                            } else {
+                                alert('Unsupported file type');
+                            }
                         } catch (err) {
-                            console.error('Error importing KMZ:', err);
-                            alert('Failed to import KMZ: ' + err.message);
+                            console.error('Error importing file:', err);
+                            alert('Failed to import file: ' + err.message);
                         }
                         // Reset input
                         fileInput.value = '';

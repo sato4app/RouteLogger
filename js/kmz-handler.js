@@ -218,3 +218,48 @@ function saveAs(blob, filename) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * GeoJSONファイルをインポート
+ * @param {File} file - インポートするGeoJSONファイル
+ * @returns {Promise<Object>}
+ */
+export async function importGeoJson(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      try {
+        const geojson = JSON.parse(e.target.result);
+
+        // インポートID生成 (Unique ID)
+        const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // GeoJSONのpropertiesにimportIdを追加
+        if (geojson.features) {
+          geojson.features.forEach(feature => {
+            feature.properties = feature.properties || {};
+            feature.properties.importId = importId;
+          });
+        } else if (geojson.type === 'Feature') {
+          // 単一Featureの場合
+          geojson.properties = geojson.properties || {};
+          geojson.properties.importId = importId;
+        }
+
+        await saveExternalData('geojson', file.name, geojson);
+        resolve(geojson);
+
+      } catch (error) {
+        console.error('GeoJSONインポートエラー:', error);
+        reject(error);
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error('ファイルの読み込みエラーが発生しました'));
+    };
+
+    reader.readAsText(file);
+  });
+}
