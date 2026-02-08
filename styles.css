@@ -276,34 +276,35 @@ body {
 }
 
 .data-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     width: 100%;
-    justify-content: space-between;
-    /* Distribute buttons evenly */
+    align-items: center;
+    /* Align vertically in row */
 }
 
 .wide-action-btn {
+    grid-column: span 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    background: none;
-    border: none;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.4);
+    /* Semi-transparent background for track shape */
+    border: 1px solid rgba(255, 255, 255, 0.3);
     cursor: pointer;
     padding: 8px 0;
-    flex: 1;
-    /* Match flex behavior */
-    min-height: 80px;
-    /* Make it taller */
-    border-radius: var(--radius-sm);
-    transition: background-color 0.2s;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    /* Track/Pill shape */
+    transition: background-color 0.2s, transform 0.1s;
 }
 
 .wide-action-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    /* Subtle hover effect */
+    background-color: rgba(255, 255, 255, 0.6);
 }
 
 .wide-action-btn:active {
@@ -311,11 +312,17 @@ body {
 }
 
 .wide-action-btn .icon-box {
-    width: 40px;
-    /* Slightly smaller icon container inside wide btn? or keep same */
-    height: 40px;
-    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    box-shadow: none;
+    /* remove shadow for cleaner look inside pill? or keep */
+    background: none;
+    /* icon on transparent? or keep colored circle? */
 }
+
+/* Keep standard icon-box styles but override for wide-btn if needed to fit height */
+/* Use specific selector if .wide-action-btn .icon-box needs change */
 
 .wide-action-btn .icon-box svg {
     width: 20px;
@@ -325,7 +332,13 @@ body {
 .wide-action-btn span {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-sub);
+    color: var(--text-main);
+    /* Darker text on light bg? */
+}
+
+/* Ensure spacer takes 1 col */
+.spacer {
+    grid-column: span 1;
 }
 
 /* Dialogs */
