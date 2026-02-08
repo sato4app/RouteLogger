@@ -332,12 +332,14 @@ body {
 }
 
 /* Specific colors for wide action buttons */
-.wide-action-btn .cloud-icon {
+.wide-action-btn .cloud-icon,
+.wide-action-btn .cloud-dl-icon {
     color: #007AFF;
     /* Apple Blue */
 }
 
-.wide-action-btn .kmz-icon {
+.wide-action-btn .kmz-icon,
+.wide-action-btn .kmz-import-icon {
     color: #34C759;
     /* Apple Green */
 }
