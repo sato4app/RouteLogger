@@ -388,8 +388,8 @@ export function displayAllTracks(tracks) {
             const latlngs = track.points.map(p => [p.lat, p.lng]);
             const polyline = L.polyline(latlngs, {
                 color: '#000080',
-                weight: 4,
-                opacity: 0.5 // 過去のログは少し薄くする
+                weight: 5,
+                opacity: 1.0 // 写真マーカーと同程度の濃さにする
             }).addTo(state.map);
 
             state.addExternalLayer(polyline);
