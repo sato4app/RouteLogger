@@ -221,20 +221,19 @@ body {
 
 /* Data Panel Layout */
 #dataPanel {
-    flex-direction: row;
-    /* Ensure row layout for columns */
-    align-items: stretch;
-}
-
-.panel-column {
-    display: flex;
     flex-direction: column;
-    gap: 8px;
+    /* Ensure column layout for rows */
+    align-items: stretch;
+    padding: 12px;
+    /* Restore padding */
 }
 
-.button-row {
+.data-row {
     display: flex;
     gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+    /* Distribute buttons evenly */
 }
 
 .wide-action-btn {
@@ -247,12 +246,10 @@ body {
     border: none;
     cursor: pointer;
     padding: 8px 0;
-    width: 100%;
-    /* Fill the column width */
-    height: 100%;
-    /* Try to match height if needed, but flex handles it */
+    flex: 1;
+    /* Match flex behavior */
     min-height: 80px;
-    /* Make it taller to match 2 buttons */
+    /* Make it taller */
     border-radius: var(--radius-sm);
     transition: background-color 0.2s;
 }

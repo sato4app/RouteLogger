@@ -45,7 +45,9 @@
 
     <!-- Data Panel (Hidden by default) -->
     <div id="dataPanel" class="panel hidden">
-        <div class="panel-column">
+        <!-- Row 3: Save Options (Hidden initially) -->
+        <div id="saveOptionsRow" class="data-row hidden"
+            style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.3);">
             <button id="cloudSaveBtn" class="wide-action-btn" title="Save to Cloud">
                 <div class="icon-box cloud-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -57,35 +59,6 @@
                 </div>
                 <span>to Cloud...</span>
             </button>
-            <div class="button-row">
-                <button id="photoListBtn" class="action-btn" title="Photos">
-                    <div class="icon-box photos-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </div>
-                    <span>Photos</span>
-                </button>
-                <button id="dataSizeBtn" class="action-btn" title="Data Size">
-                    <div class="icon-box size-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                            </path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                    </div>
-                    <span>Size</span>
-                </button>
-            </div>
-        </div>
-        <div class="panel-column">
             <button id="kmzSaveBtn" class="wide-action-btn" title="Save to KMZ File">
                 <div class="icon-box kmz-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -98,35 +71,57 @@
                 </div>
                 <span>to File(KMZ)...</span>
             </button>
-            <div class="button-row">
-                <!-- Legacy Save Button (Hidden or kept as backup?) Kept for consistency but actions moved -->
-                <!-- User requested "save and load connected size" implies replacing or grouping -->
-                <!-- The prompt says: "save and load connected... save to KMZ display above both" -->
-                <!-- So 'Save' button might become redundant or just 'Save' (to cloud? to generic?) -->
-                <!-- Let's keep Save/Load as requested in the bottom row of right column -->
-                <button id="dataSaveBtn" class="action-btn" title="Save" style="display: none;">
-                    <div class="icon-box save-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                    </div>
-                    <span>Save</span>
-                </button>
-                <button id="dataReloadBtn" class="action-btn" title="Load from Cloud">
-                    <div class="icon-box reload-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="23 4 23 10 17 10"></polyline>
-                            <polyline points="1 20 1 14 7 14"></polyline>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                        </svg>
-                    </div>
-                    <span>Load</span>
-                </button>
-            </div>
+        </div>
+
+        <!-- Row 2: Standard Data Actions -->
+        <div class="data-row">
+            <button id="photoListBtn" class="action-btn" title="Photos">
+                <div class="icon-box photos-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </div>
+                <span>Photos</span>
+            </button>
+            <button id="dataSizeBtn" class="action-btn" title="Data Size">
+                <div class="icon-box size-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                        </path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <span>Size</span>
+            </button>
+            <button id="dataSaveBtn" class="action-btn" title="Save Menu">
+                <div class="icon-box save-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                </div>
+                <span>Save</span>
+            </button>
+            <button id="dataReloadBtn" class="action-btn" title="Load from Cloud">
+                <div class="icon-box reload-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </div>
+                <span>Load</span>
+            </button>
         </div>
     </div>
 

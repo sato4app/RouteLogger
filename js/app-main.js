@@ -185,20 +185,14 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    // Legacy Save Button (Hidden but kept for safety/compatibility if needed)
+    // Legacy Save Button (Now used to toggle Save Options Row)
     const dataSaveBtn = document.getElementById('dataSaveBtn');
     if (dataSaveBtn) {
-        dataSaveBtn.addEventListener('click', async () => {
-            // Default to KMZ for legacy button w/o dialog
-            try {
-                const tracks = await getAllTracks();
-                const photos = await getAllPhotos();
-                await exportToKmz(tracks, photos);
-            } catch (e) {
-                console.error('エクスポートエラー:', e);
-                alert('エクスポートに失敗しました: ' + e.message);
+        dataSaveBtn.addEventListener('click', () => {
+            const saveOptionsRow = document.getElementById('saveOptionsRow');
+            if (saveOptionsRow) {
+                saveOptionsRow.classList.toggle('hidden');
             }
-            returnToMainControl();
         });
     }
 
@@ -232,6 +226,11 @@ function toggleDataPanel() {
 
     if (dataPanel.classList.contains('hidden')) {
         dataPanel.classList.remove('hidden');
+        // Reset save options to hidden when opening panel
+        const saveOptionsRow = document.getElementById('saveOptionsRow');
+        if (saveOptionsRow) {
+            saveOptionsRow.classList.add('hidden');
+        }
     } else {
         dataPanel.classList.add('hidden');
     }
