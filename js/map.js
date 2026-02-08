@@ -318,12 +318,13 @@ export function displayExternalGeoJSON(geoJson) {
                     let popupContent = '';
 
                     // IDとNameの表示 (ポイントデータの場合を重視)
-                    const id = feature.id || feature.properties.id || feature.properties.importId || 'No ID';
+                    // ユーザー要望: pointIdとnameを表示
+                    const pointId = feature.properties.pointId || feature.id || feature.properties.id || feature.properties.importId || 'No ID';
                     const name = feature.properties.name || 'No Name';
 
-                    // GeoJSONのPointの場合、IDとNameを明示的に表示
+                    // GeoJSONのPointの場合、pointIdとNameを明示的に表示
                     if (feature.geometry && feature.geometry.type === 'Point') {
-                        popupContent += `<b>ID:</b> ${id}<br>`;
+                        popupContent += `<b>ID:</b> ${pointId}<br>`;
                         popupContent += `<b>Name:</b> ${name}<br>`;
                     } else {
                         // ラインなどの場合は従来通りNameがあれば表示
