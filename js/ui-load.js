@@ -1,4 +1,4 @@
-import { toggleVisibility, updateStatus } from './ui-common.js';
+import { toggleVisibility, updateStatus, setUiBusy } from './ui-common.js';
 import { reloadFromFirebase } from './firebase-ops.js';
 import { saveExternalData, restoreTrack, savePhoto, clearIndexedDBSilent } from './db.js';
 import { displayExternalGeoJSON, displayPhotoMarkers, updateTrackingPath } from './map.js';
@@ -69,6 +69,7 @@ async function handleGeoJSONUpload(event) {
     if (!file) return;
 
     updateStatus('GeoJSON読み込み中...');
+    setUiBusy(true);
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -96,12 +97,15 @@ async function handleGeoJSONUpload(event) {
             alert('GeoJSONの読み込みに失敗しました: ' + error.message);
             updateStatus('読み込み失敗');
             event.target.value = '';
+        } finally {
+            setUiBusy(false);
         }
     };
     reader.onerror = () => {
         alert('ファイルの読み込みエラーが発生しました');
         updateStatus('読み込み失敗');
         event.target.value = '';
+        setUiBusy(false);
     };
 
     reader.readAsText(file);
@@ -115,6 +119,7 @@ async function handleKmzUpload(event) {
     if (!file) return;
 
     updateStatus('KMZ読み込み中...');
+    setUiBusy(true);
 
     try {
         // KMZインポート実行
@@ -176,6 +181,7 @@ async function handleKmzUpload(event) {
         alert('KMZの読み込みに失敗しました: ' + error.message);
         updateStatus('読み込み失敗');
     } finally {
+        setUiBusy(false);
         event.target.value = '';
     }
 }

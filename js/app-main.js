@@ -6,7 +6,7 @@ import { initMap, displayPhotoMarkers } from './map.js';
 import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrientation } from './tracking.js';
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
-import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog } from './ui.js';
+import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks } from './map.js';
@@ -197,6 +197,7 @@ function setupEventListeners() {
                 fileInput.addEventListener('change', async (event) => {
                     const file = event.target.files[0];
                     if (file) {
+                        setUiBusy(true);
                         try {
                             const { importKmz, importGeoJson } = await import('./kmz-handler.js');
 
@@ -217,9 +218,11 @@ function setupEventListeners() {
                         } catch (err) {
                             console.error('Error importing file:', err);
                             alert('Failed to import file: ' + err.message);
+                        } finally {
+                            setUiBusy(false);
+                            // Reset input
+                            fileInput.value = '';
                         }
-                        // Reset input
-                        fileInput.value = '';
                     }
                 });
             }
@@ -233,7 +236,12 @@ function setupEventListeners() {
         const docName = await showDocNameDialog(defaultName);
 
         if (docName) {
-            await saveToFirebase(docName);
+            setUiBusy(true);
+            try {
+                await saveToFirebase(docName);
+            } finally {
+                setUiBusy(false);
+            }
         }
         returnToMainControl();
     });
@@ -244,6 +252,7 @@ function setupEventListeners() {
         const docName = await showDocNameDialog(defaultName);
 
         if (docName) {
+            setUiBusy(true);
             try {
                 const tracks = await getAllTracks();
                 const photos = await getAllPhotos();
@@ -251,6 +260,8 @@ function setupEventListeners() {
             } catch (e) {
                 console.error('エクスポートエラー:', e);
                 alert('エクスポートに失敗しました: ' + e.message);
+            } finally {
+                setUiBusy(false);
             }
         }
         returnToMainControl();

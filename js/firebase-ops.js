@@ -5,7 +5,7 @@ import * as state from './state.js';
 import { formatPositionData, base64ToBlob, calculateTrackStats, calculateHeading } from './utils.js';
 import { getAllTracks, getAllPhotos, initIndexedDB, clearIndexedDBSilent } from './db.js';
 import { clearMapData, addStartMarker, addEndMarker, removeCurrentMarker, displayPhotoMarkers } from './map.js';
-import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromMarker, closeDocumentListDialog } from './ui.js';
+import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromMarker, closeDocumentListDialog, setUiBusy } from './ui.js';
 
 /**
  * IndexedDBのデータをFirebaseに保存
@@ -18,6 +18,7 @@ export async function saveToFirebase(providedName) {
     }
 
     try {
+        setUiBusy(true);
         updateStatus('Firebaseに保存中...');
 
         const currentUser = firebase.auth().currentUser;
@@ -90,6 +91,8 @@ export async function saveToFirebase(providedName) {
         console.error('Firebase保存エラー:', error);
         updateStatus('Firebase保存エラー');
         alert('Firebaseへの保存に失敗しました: ' + error.message);
+    } finally {
+        setUiBusy(false);
     }
 }
 
@@ -98,6 +101,7 @@ export async function saveToFirebase(providedName) {
  */
 export async function reloadFromFirebase() {
     try {
+        setUiBusy(true);
         updateStatus('ドキュメント一覧を取得中...');
 
         const currentUser = firebase.auth().currentUser;
@@ -136,6 +140,8 @@ export async function reloadFromFirebase() {
         console.error('ドキュメント取得エラー:', error);
         alert('ドキュメントの取得に失敗しました: ' + error.message);
         updateStatus('ドキュメント取得エラー');
+    } finally {
+        setUiBusy(false);
     }
 }
 
@@ -145,6 +151,7 @@ export async function reloadFromFirebase() {
  */
 export async function loadDocument(doc) {
     try {
+        setUiBusy(true);
         updateStatus('データを読み込み中...');
         closeDocumentListDialog();
 
@@ -184,6 +191,8 @@ export async function loadDocument(doc) {
         console.error('ドキュメント読み込みエラー:', error);
         alert('データの読み込みに失敗しました: ' + error.message);
         updateStatus('データ読み込みエラー');
+    } finally {
+        setUiBusy(false);
     }
 }
 

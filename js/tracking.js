@@ -6,7 +6,7 @@ import { calculateDistance, formatDateTime } from './utils.js';
 import { initIndexedDB, getAllTracks, getAllPhotos, clearIndexedDBSilent, saveLastPosition, saveTrackingDataRealtime, createInitialTrack } from './db.js';
 import { calculateTrackStats, calculateHeading } from './utils.js';
 import { updateCurrentMarker, updateTrackingPath, clearMapData, addStartMarker } from './map.js';
-import { updateStatus, updateCoordinates, updateDataSizeIfOpen, showClearDataDialog } from './ui.js';
+import { updateStatus, updateCoordinates, updateDataSizeIfOpen, showClearDataDialog, updateUiForTrackingState } from './ui.js';
 
 /**
  * Wake Lockを取得（画面スリープ防止）
@@ -286,8 +286,8 @@ export async function startTracking() {
     state.setLastRecordedPoint(null);
     state.setPreviousTotalPoints(0);
 
-    // Saveボタンを有効化
-    document.getElementById('dataSaveBtn').disabled = false;
+    // UI更新 (ボタン状態など)
+    updateUiForTrackingState();
 
     // 開始時刻を記録
     const now = new Date();
@@ -336,9 +336,11 @@ export async function startTracking() {
     state.setWatchId(id);
 
     // UI更新
-    document.getElementById('startBtn').disabled = true;
-    document.getElementById('stopBtn').disabled = false;
-    document.getElementById('photoBtn').disabled = false;
+    // updateUiForTrackingState called above (Wait, I should call it here to be safe and clear)
+    // Actually, I removed the earlier call.
+    // However, isTracking is set to true at line 283.
+    // So updateUiForTrackingState() will see isTracking=true.
+
     updateStatus('GPS記録を開始しました');
 }
 
@@ -359,9 +361,7 @@ export async function stopTracking() {
     }
 
     // UI更新
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    document.getElementById('photoBtn').disabled = true;
+    updateUiForTrackingState();
 
     if (state.trackingData.length > 0) {
         const lastPoint = state.trackingData[state.trackingData.length - 1];

@@ -1,5 +1,105 @@
 // RouteLogger - UI 共通機能
 
+import { isTracking } from './state.js';
+
+/**
+ * UIのビジー状態を設定（Save/Load中など）
+ * @param {boolean} isBusy
+ */
+export function setUiBusy(isBusy) {
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const photoBtn = document.getElementById('photoBtn');
+    const dataBtn = document.getElementById('dataBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+
+    // Save/Load toggles and buttons
+    const dataSaveBtn = document.getElementById('dataSaveBtn');
+    const dataReloadBtn = document.getElementById('dataReloadBtn');
+    const cloudLoadBtn = document.getElementById('cloudLoadBtn');
+    const kmzLoadBtn = document.getElementById('kmzLoadBtn');
+    const cloudSaveBtn = document.getElementById('cloudSaveBtn');
+    const kmzSaveBtn = document.getElementById('kmzSaveBtn');
+
+    // GeoJSON Input label if exists, or other inputs
+    // For now we handle buttons.
+
+    if (isBusy) {
+        if (startBtn) startBtn.disabled = true;
+        if (stopBtn) stopBtn.disabled = true;
+        if (photoBtn) photoBtn.disabled = true;
+        if (dataBtn) dataBtn.disabled = true;
+        if (settingsBtn) settingsBtn.disabled = true;
+
+        if (dataSaveBtn) dataSaveBtn.disabled = true;
+        if (dataReloadBtn) dataReloadBtn.disabled = true;
+        if (cloudLoadBtn) cloudLoadBtn.disabled = true;
+        if (kmzLoadBtn) kmzLoadBtn.disabled = true;
+        if (cloudSaveBtn) cloudSaveBtn.disabled = true;
+        if (kmzSaveBtn) kmzSaveBtn.disabled = true;
+
+    } else {
+        // Restore based on tracking state
+        updateUiForTrackingState();
+    }
+}
+
+/**
+ * トラッキング状態に基づいてUIを更新
+ */
+export function updateUiForTrackingState() {
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const photoBtn = document.getElementById('photoBtn');
+    const dataBtn = document.getElementById('dataBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+
+    const dataSaveBtn = document.getElementById('dataSaveBtn');
+    const dataReloadBtn = document.getElementById('dataReloadBtn');
+
+    // Direct buttons in panels
+    const cloudLoadBtn = document.getElementById('cloudLoadBtn');
+    const kmzLoadBtn = document.getElementById('kmzLoadBtn');
+    const cloudSaveBtn = document.getElementById('cloudSaveBtn');
+    const kmzSaveBtn = document.getElementById('kmzSaveBtn');
+
+    if (isTracking) {
+        // Logging active
+        if (startBtn) startBtn.disabled = true;
+        if (stopBtn) stopBtn.disabled = false;
+        if (photoBtn) photoBtn.disabled = false;
+
+        // Data/Settings enabled
+        if (dataBtn) dataBtn.disabled = false;
+        if (settingsBtn) settingsBtn.disabled = false;
+
+        // Save/Load disabled
+        if (dataSaveBtn) dataSaveBtn.disabled = true;
+        if (dataReloadBtn) dataReloadBtn.disabled = true;
+        if (cloudLoadBtn) cloudLoadBtn.disabled = true;
+        if (kmzLoadBtn) kmzLoadBtn.disabled = true;
+        if (cloudSaveBtn) cloudSaveBtn.disabled = true;
+        if (kmzSaveBtn) kmzSaveBtn.disabled = true;
+
+    } else {
+        // Not logging
+        if (startBtn) startBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = true;
+        if (photoBtn) photoBtn.disabled = true;
+
+        if (dataBtn) dataBtn.disabled = false;
+        if (settingsBtn) settingsBtn.disabled = false;
+
+        // Save/Load enabled
+        if (dataSaveBtn) dataSaveBtn.disabled = false;
+        if (dataReloadBtn) dataReloadBtn.disabled = false;
+        if (cloudLoadBtn) cloudLoadBtn.disabled = false;
+        if (kmzLoadBtn) kmzLoadBtn.disabled = false;
+        if (cloudSaveBtn) cloudSaveBtn.disabled = false;
+        if (kmzSaveBtn) kmzSaveBtn.disabled = false;
+    }
+}
+
 /**
  * HTML要素の表示・非表示を切り替え
  * @param {string} elementId - 要素ID
