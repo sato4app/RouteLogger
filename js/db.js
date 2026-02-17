@@ -229,6 +229,27 @@ export function updatePhoto(photoRecord) {
 }
 
 /**
+ * 写真を削除
+ * @param {number} id - 写真ID
+ * @returns {Promise<void>}
+ */
+export function deletePhoto(id) {
+    return new Promise((resolve, reject) => {
+        if (!state.db) {
+            reject(new Error('データベースが初期化されていません'));
+            return;
+        }
+
+        const transaction = state.db.transaction([STORE_PHOTOS], 'readwrite');
+        const store = transaction.objectStore(STORE_PHOTOS);
+        const request = store.delete(id);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
  * トラックの初期レコードを作成
  * @param {string} timestamp
  * @returns {Promise<number>} trackId

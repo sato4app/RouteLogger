@@ -4,7 +4,7 @@ let currentPhotoText = '';
 
 import { PHOTO_WIDTH, PHOTO_HEIGHT, PHOTO_QUALITY } from './config.js';
 import * as state from './state.js';
-import { savePhoto, updatePhoto, getPhoto } from './db.js';
+import { savePhoto, updatePhoto, getPhoto, deletePhoto } from './db.js';
 import { addPhotoMarkerToMap, removePhotoMarker } from './map.js';
 import { updateStatus, updateDataSizeIfOpen, showPhotoFromMarker } from './ui.js';
 
@@ -151,6 +151,53 @@ export function closeCameraDialog() {
     state.setCapturedPhotoData(null);
 
     updateStatus(state.isTracking ? `GPS記録中 (${state.trackingData.length}点記録)` : 'GPS待機中...');
+}
+
+/**
+ * 写真を撮り直す（Retake）
+ */
+export async function retakePhoto() {
+    // 現在の写真をDBとMapから削除
+    if (state.currentPhotoId) {
+        try {
+            await deletePhoto(state.currentPhotoId);
+            removePhotoMarker(state.currentPhotoId);
+        } catch (error) {
+            console.error('写真削除エラー (Retake):', error);
+        }
+    }
+
+    // 状態リセット
+    state.setCapturedPhotoData(null);
+    state.setCurrentPhotoId(null);
+    state.setCapturedPhotoLocation(null);
+    currentPhotoText = '';
+
+    // セッション枚数を減らす（キャンセル扱い）
+    if (state.photosInSession > 0) {
+        state.setPhotosInSession(state.photosInSession - 1);
+    }
+    updateDataSizeIfOpen();
+
+    // UIを撮影モードに戻す
+    const cameraPreview = document.getElementById('cameraPreview');
+    const capturedCanvas = document.getElementById('capturedCanvas');
+    const captureButtons = document.getElementById('captureButtons');
+    const directionButtons = document.getElementById('directionButtons');
+
+    cameraPreview.classList.remove('hidden');
+    capturedCanvas.classList.add('hidden');
+    captureButtons.classList.remove('hidden');
+    directionButtons.classList.add('hidden');
+
+    updateStatus('カメラ準備完了');
+
+    // カメラストリームが停止していたら再開
+    if (!state.cameraStream) {
+        await takePhoto();
+        // takePhoto will handle getUserMedia and state.setCameraStream
+        // and also UI visibility, which matches what we want.
+    }
 }
 
 

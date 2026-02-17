@@ -4,7 +4,7 @@ import * as state from './state.js';
 import { initIndexedDB } from './db.js';
 import { initMap, displayPhotoMarkers } from './map.js';
 import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrientation } from './tracking.js';
-import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton } from './camera.js';
+import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton, retakePhoto } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
 import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
@@ -121,7 +121,7 @@ function setupEventListeners() {
     // カメラUI
     document.getElementById('cameraCloseBtn').addEventListener('click', closeCameraDialog);
     document.getElementById('cameraShutterBtn').addEventListener('click', capturePhoto);
-    document.getElementById('cameraBackBtn').addEventListener('click', closeCameraDialog);
+    document.getElementById('cameraBackBtn').addEventListener('click', retakePhoto);
     document.getElementById('cameraTextBtn').addEventListener('click', handleTextButton);
     document.getElementById('cameraCloseAfterShotBtn').addEventListener('click', closeCameraDialog);
 
