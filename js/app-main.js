@@ -8,7 +8,7 @@ import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, han
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
 import { initLoadDialogControls } from './ui-load.js';
-import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
+import { getAllExternalData, getAllTracks, getAllPhotos, clearIndexedDBSilent, restoreTrack, savePhoto } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
 
@@ -174,18 +174,37 @@ function setupEventListeners() {
                             setUiBusy(true);
                             try {
                                 const { importKmz, importGeoJson } = await import('./kmz-handler.js');
+                                let result;
 
                                 if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
-                                    await importKmz(file);
-                                    alert('KMZ loaded successfully');
-                                    location.reload();
+                                    result = await importKmz(file);
                                 } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
-                                    const geojson = await importGeoJson(file);
-                                    displayExternalGeoJSON(geojson);
-                                    updateStatus('外部データを表示しました');
-                                    alert(`GeoJSON loaded successfully: ${file.name}`);
+                                    result = await importGeoJson(file);
                                 } else {
                                     alert('Unsupported file type');
+                                    return;
+                                }
+
+                                if (result.type === 'RouteLogger') {
+                                    if (confirm('現在の記録データをクリアして、このファイルを読み込みますか？')) {
+                                        updateStatus('データをリセット中...');
+                                        await clearIndexedDBSilent();
+                                        updateStatus('トラックデータを復元中...');
+                                        for (const track of result.tracks) {
+                                            await restoreTrack(track);
+                                        }
+                                        updateStatus('写真データを復元中...');
+                                        for (const photo of result.photos) {
+                                            delete photo.id;
+                                            await savePhoto(photo);
+                                        }
+                                        alert(`読み込み完了: ${file.name}\nページをリロードします。`);
+                                        location.reload();
+                                    }
+                                } else {
+                                    displayExternalGeoJSON(result.geojson);
+                                    updateStatus('外部データを表示しました');
+                                    alert(`Loaded successfully: ${file.name}`);
                                 }
                             } catch (err) {
                                 console.error('Error importing file:', err);

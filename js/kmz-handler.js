@@ -131,8 +131,10 @@ function generateKml(tracks, photos) {
 
 /**
  * KMZファイルをインポート
+ * creatorがRouteLoggerなら {type:'RouteLogger', tracks, photos}
+ * それ以外なら {type:'other', geojson} を返す
  * @param {File} file - インポートするKMZファイル
- * @returns {Promise<void>}
+ * @returns {Promise<Object>}
  */
 export async function importKmz(file) {
   try {
@@ -146,46 +148,106 @@ export async function importKmz(file) {
 
     const kmlText = await kmlFile.async("string");
 
-    // KMLをGeoJSONに変換
+    // RouteLogger製かどうかをcreator文字列で判定
+    const isRouteLogger = kmlText.includes('<atom:name>RouteLogger</atom:name>');
+
     const parser = new DOMParser();
     const kmlDom = parser.parseFromString(kmlText, "text/xml");
 
-    // togeojsonライブラリを使用 (window.toGeoJSONとしてロードされている前提)
-    if (!window.toGeoJSON || !window.toGeoJSON.kml) {
-      throw new Error('KML変換ライブラリが読み込まれていません。');
-    }
+    if (isRouteLogger) {
+      // --- RouteLoggerデータとしてtracks/photosを解析して返す ---
+      const tracks = [];
+      const photos = [];
+      const placemarks = kmlDom.querySelectorAll('Placemark');
 
-    const geojson = window.toGeoJSON.kml(kmlDom);
+      for (const placemark of placemarks) {
+        const lineString = placemark.querySelector('LineString');
+        const point = placemark.querySelector('Point');
 
-    // インポートID生成 (Unique ID)
-    const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (lineString) {
+          // トラック
+          const coordsText = lineString.querySelector('coordinates')?.textContent.trim() || '';
+          const points = coordsText.split(/\s+/).filter(s => s.trim()).map(coord => {
+            const parts = coord.split(',');
+            return { lat: parseFloat(parts[1]), lng: parseFloat(parts[0]) };
+          }).filter(p => !isNaN(p.lat) && !isNaN(p.lng));
 
-    // 画像ファイルを抽出して保存
-    const imageFiles = Object.values(zip.files).filter(f => !f.dir && /\.(jpg|jpeg|png|gif)$/i.test(f.name));
+          if (points.length > 0) {
+            tracks.push({ timestamp: new Date().toISOString(), points, totalPoints: points.length });
+          }
+        } else if (point) {
+          // 写真
+          const coordsText = point.querySelector('coordinates')?.textContent.trim() || '';
+          const parts = coordsText.split(',');
+          const lat = parseFloat(parts[1]);
+          const lng = parseFloat(parts[0]);
 
-    if (imageFiles.length > 0) {
+          if (isNaN(lat) || isNaN(lng)) continue;
+
+          // 説明文から画像パスを取得
+          const description = placemark.querySelector('description')?.textContent || '';
+          const imgMatch = description.match(/src="([^"]+\.(?:jpg|jpeg|png|gif))"/i);
+          const imgPath = imgMatch ? imgMatch[1] : null;
+
+          let photoBase64 = null;
+          if (imgPath && zip.files[imgPath]) {
+            const blob = await zip.files[imgPath].async('blob');
+            photoBase64 = await blobToBase64(blob);
+          }
+
+          if (photoBase64) {
+            photos.push({
+              data: photoBase64,
+              timestamp: new Date().toISOString(),
+              location: { lat, lng },
+              direction: null,
+              text: null
+            });
+          }
+        }
+      }
+
+      return { type: 'RouteLogger', tracks, photos };
+    } else {
+      // --- 外部データとしてexternals/external_photosに保存 ---
+      if (!window.toGeoJSON || !window.toGeoJSON.kml) {
+        throw new Error('KML変換ライブラリが読み込まれていません。');
+      }
+
+      const geojson = window.toGeoJSON.kml(kmlDom);
+      const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const imageFiles = Object.values(zip.files).filter(f => !f.dir && /\.(jpg|jpeg|png|gif)$/i.test(f.name));
       for (const imgFile of imageFiles) {
         const blob = await imgFile.async("blob");
-        // パスを含んだファイル名 (例: images/photo_123.jpg)
         await saveExternalPhoto(importId, imgFile.name, blob);
       }
+
+      geojson.features.forEach(feature => {
+        feature.properties = feature.properties || {};
+        feature.properties.importId = importId;
+      });
+
+      await saveExternalData('geojson', file.name, geojson);
+      return { type: 'other', geojson };
     }
-
-    // GeoJSONを保存 (画像参照用にimportIdを含める)
-    // GeoJSONのpropertiesにimportIdを追加して、後で画像と紐付けられるようにする
-    geojson.features.forEach(feature => {
-      feature.properties = feature.properties || {};
-      feature.properties.importId = importId;
-    });
-
-    await saveExternalData('geojson', file.name, geojson);
-
-    return geojson;
 
   } catch (error) {
     console.error('KMZインポートエラー:', error);
     throw error;
   }
+}
+
+/**
+ * BlobをBase64文字列に変換
+ */
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Blob to Base64変換エラー'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**
@@ -221,6 +283,8 @@ function saveAs(blob, filename) {
 
 /**
  * GeoJSONファイルをインポート
+ * creatorがRouteLoggerなら {type:'RouteLogger', tracks, photos}
+ * それ以外なら {type:'other', geojson} を返す
  * @param {File} file - インポートするGeoJSONファイル
  * @returns {Promise<Object>}
  */
@@ -232,23 +296,56 @@ export async function importGeoJson(file) {
       try {
         const geojson = JSON.parse(e.target.result);
 
-        // インポートID生成 (Unique ID)
-        const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // creatorがRouteLoggerか確認
+        if (geojson.creator === 'RouteLogger') {
+          const tracks = [];
+          const photos = [];
 
-        // GeoJSONのpropertiesにimportIdを追加
-        if (geojson.features) {
-          geojson.features.forEach(feature => {
-            feature.properties = feature.properties || {};
-            feature.properties.importId = importId;
-          });
-        } else if (geojson.type === 'Feature') {
-          // 単一Featureの場合
-          geojson.properties = geojson.properties || {};
-          geojson.properties.importId = importId;
+          if (geojson.features) {
+            for (const feature of geojson.features) {
+              const props = feature.properties || {};
+              const geomType = feature.geometry?.type;
+
+              if (geomType === 'LineString') {
+                const points = (feature.geometry.coordinates || []).map(([lng, lat]) => ({ lat, lng }));
+                if (points.length > 0) {
+                  tracks.push({
+                    timestamp: props.timestamp || new Date().toISOString(),
+                    points,
+                    totalPoints: points.length
+                  });
+                }
+              } else if (geomType === 'Point') {
+                const [lng, lat] = feature.geometry.coordinates;
+                photos.push({
+                  data: props.photoData || null,
+                  timestamp: props.timestamp || new Date().toISOString(),
+                  location: { lat, lng },
+                  direction: props.direction || null,
+                  text: props.text || null
+                });
+              }
+            }
+          }
+
+          resolve({ type: 'RouteLogger', tracks, photos });
+        } else {
+          // 外部データとしてexternalsに保存
+          const importId = `import_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+          if (geojson.features) {
+            geojson.features.forEach(feature => {
+              feature.properties = feature.properties || {};
+              feature.properties.importId = importId;
+            });
+          } else if (geojson.type === 'Feature') {
+            geojson.properties = geojson.properties || {};
+            geojson.properties.importId = importId;
+          }
+
+          await saveExternalData('geojson', file.name, geojson);
+          resolve({ type: 'other', geojson });
         }
-
-        await saveExternalData('geojson', file.name, geojson);
-        resolve(geojson);
 
       } catch (error) {
         console.error('GeoJSONインポートエラー:', error);
