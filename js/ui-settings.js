@@ -47,6 +47,11 @@ export function showSettingsDialog() {
         showClockToggle.checked = state.isClockVisible;
     }
 
+    const useFirebaseToggle = document.getElementById('useFirebaseToggle');
+    if (useFirebaseToggle) {
+        useFirebaseToggle.checked = state.isFirebaseEnabled;
+    }
+
     toggleVisibility('settingsDialog', true);
 }
 
@@ -84,5 +89,18 @@ export function initSettings() {
     if (savedClockSetting !== null) {
         state.setIsClockVisible(savedClockSetting === 'true');
         // updateClock() will be called by initClock() later
+    }
+
+    // Firebase Toggle
+    const useFirebaseToggle = document.getElementById('useFirebaseToggle');
+    if (useFirebaseToggle) {
+        useFirebaseToggle.addEventListener('change', (e) => {
+            state.setIsFirebaseEnabled(e.target.checked);
+            localStorage.setItem('routeLogger_useFirebase', e.target.checked);
+        });
+    }
+    const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
+    if (savedFirebaseSetting !== null) {
+        state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
     }
 }

@@ -45,74 +45,6 @@
 
     <!-- Data Panel (Hidden by default) -->
     <div id="dataPanel" class="hidden">
-        <!-- Row 3: Load Options (Hidden initially) -->
-        <div id="loadOptionsRow" class="data-row hidden glass-panel">
-            <!-- Spacer to align with Start button/Spacer in Row 2 -->
-            <div class="action-btn spacer" style="visibility: hidden;"></div>
-            <button id="cloudLoadBtn" class="wide-action-btn" title="Load from Cloud">
-                <div class="icon-box cloud-dl-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-                        <polyline points="8 15 12 19 16 15"></polyline>
-                        <line x1="12" y1="12" x2="12" y2="19"></line>
-                    </svg>
-                </div>
-                <span>from Cloud...</span>
-            </button>
-            <button id="kmzLoadBtn" class="wide-action-btn" title="Load from KMZ File">
-                <div class="icon-box kmz-import-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <g transform="translate(1, 2) scale(0.75)">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <text x="8" y="18" font-family="Arial" font-size="8" fill="currentColor" stroke="none"
-                                font-weight="bold">KMZ</text>
-                        </g>
-                        <!-- Arrow pointing Right (Out/Away) -->
-                        <line x1="15" y1="12" x2="22" y2="12"></line>
-                        <polyline points="18 8 22 12 18 16"></polyline>
-                    </svg>
-                </div>
-                <span>from File(KMZ)...</span>
-            </button>
-        </div>
-
-        <!-- Row 3: Save Options (Hidden initially) -->
-        <div id="saveOptionsRow" class="data-row hidden glass-panel">
-            <!-- Spacer to align with Start button/Spacer in Row 2 -->
-            <div class="action-btn spacer" style="visibility: hidden;"></div>
-            <button id="cloudSaveBtn" class="wide-action-btn" title="Save to Cloud">
-                <div class="icon-box cloud-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-                        <polyline points="16 16 12 12 8 16"></polyline>
-                        <line x1="12" y1="21" x2="12" y2="12"></line>
-                    </svg>
-                </div>
-                <span>to Cloud...</span>
-            </button>
-            <button id="kmzSaveBtn" class="wide-action-btn" title="Save to KMZ File">
-                <div class="icon-box kmz-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <g transform="translate(9, 2) scale(0.75)">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <text x="8" y="18" font-family="Arial" font-size="8" fill="currentColor" stroke="none"
-                                font-weight="bold">KMZ</text>
-                        </g>
-                        <!-- Arrow pointing Right (Into File) -->
-                        <line x1="2" y1="12" x2="9" y2="12"></line>
-                        <polyline points="5 8 9 12 5 16"></polyline>
-                    </svg>
-                </div>
-                <span>to File(KMZ)...</span>
-            </button>
-        </div>
-
         <!-- Row 2: Standard Data Actions -->
         <div class="data-row glass-panel">
             <!-- Spacer to align with Start button -->
@@ -345,6 +277,16 @@
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="showClockToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">Use Firebase</div>
+                        <div class="setting-desc">Save/Load data to/from Cloud</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="useFirebaseToggle">
                         <span class="slider round"></span>
                     </label>
                 </div>

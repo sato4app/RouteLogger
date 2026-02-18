@@ -7,7 +7,7 @@ import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrient
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton, retakePhoto } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
-import { showLoadSelectionDialog, initLoadDialogControls } from './ui-load.js';
+import { initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
@@ -19,26 +19,6 @@ async function initApp() {
     // 時計と設定の初期化
     initClock();
     initSettings();
-
-    // Firebase匿名認証
-    try {
-
-        await firebase.auth().signInAnonymously();
-        const user = firebase.auth().currentUser;
-
-        state.setFirebaseAuthReady(true);
-    } catch (authError) {
-        console.error('Firebase匿名認証エラー:', authError);
-
-        if (authError.code === 'auth/configuration-not-found') {
-            console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.warn('Firebase Authentication が有効化されていません');
-            console.warn('GPS記録とローカル保存は正常に動作します');
-            console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        }
-
-        state.setFirebaseAuthReady(false);
-    }
 
     // IndexedDB初期化
     try {
@@ -110,6 +90,23 @@ async function initApp() {
 }
 
 /**
+ * Firebase匿名認証を確実に行う
+ */
+async function ensureFirebaseAuth() {
+    if (firebase.auth().currentUser) return true;
+    try {
+        await firebase.auth().signInAnonymously();
+        state.setFirebaseAuthReady(true);
+        return true;
+    } catch (authError) {
+        console.error('Firebase認証エラー:', authError);
+        state.setFirebaseAuthReady(false);
+        alert('Firebase認証に失敗しました: ' + authError.message);
+        return false;
+    }
+}
+
+/**
  * イベントリスナーを設定
  */
 function setupEventListeners() {
@@ -151,138 +148,94 @@ function setupEventListeners() {
         returnToMainControl();
     });
 
-    // Repurposed Load Button to toggle load options
+    // Load Button: Firebase on → Firebaseから読み込み / off → ファイルから読み込み
     const dataReloadBtn = document.getElementById('dataReloadBtn');
     if (dataReloadBtn) {
-        dataReloadBtn.addEventListener('click', (e) => {
+        dataReloadBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const loadOptionsRow = document.getElementById('loadOptionsRow');
-            const saveOptionsRow = document.getElementById('saveOptionsRow');
-
-            if (loadOptionsRow.classList.contains('hidden')) {
-                loadOptionsRow.classList.remove('hidden');
-                // Hide save options if open
-                if (saveOptionsRow) saveOptionsRow.classList.add('hidden');
+            returnToMainControl();
+            if (state.isFirebaseEnabled) {
+                const authed = await ensureFirebaseAuth();
+                if (!authed) return;
+                await reloadFromFirebase();
             } else {
-                loadOptionsRow.classList.add('hidden');
-            }
-        });
-    }
+                let fileInput = document.getElementById('kmzFileInput');
+                if (!fileInput) {
+                    fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.id = 'kmzFileInput';
+                    fileInput.accept = '.kmz,.kml,.geojson,.json';
+                    fileInput.style.display = 'none';
+                    document.body.appendChild(fileInput);
 
-    // Cloud Load Button
-    const cloudLoadBtn = document.getElementById('cloudLoadBtn');
-    if (cloudLoadBtn) {
-        cloudLoadBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Reuse existing load dialog logic
-            showLoadSelectionDialog();
-        });
-    }
+                    fileInput.addEventListener('change', async (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            setUiBusy(true);
+                            try {
+                                const { importKmz, importGeoJson } = await import('./kmz-handler.js');
 
-    // KMZ Load Button
-    const kmzLoadBtn = document.getElementById('kmzLoadBtn');
-    if (kmzLoadBtn) {
-        kmzLoadBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Trigger hidden file input for KMZ/GeoJSON import
-            let fileInput = document.getElementById('kmzFileInput');
-            if (!fileInput) {
-                fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.id = 'kmzFileInput';
-                fileInput.accept = '.kmz,.kml,.geojson,.json';
-                fileInput.style.display = 'none';
-                document.body.appendChild(fileInput);
-
-                fileInput.addEventListener('change', async (event) => {
-                    const file = event.target.files[0];
-                    if (file) {
-                        setUiBusy(true);
-                        try {
-                            const { importKmz, importGeoJson } = await import('./kmz-handler.js');
-
-                            if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
-                                await importKmz(file);
-                                alert('KMZ loaded successfully');
-                                // Refresh to show data (as per kmz logic)
-                                location.reload();
-                            } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
-                                const geojson = await importGeoJson(file);
-                                // Display GeoJSON
-                                displayExternalGeoJSON(geojson);
-                                updateStatus('外部データを表示しました');
-                                alert(`GeoJSON loaded successfully: ${file.name}`);
-                            } else {
-                                alert('Unsupported file type');
+                                if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
+                                    await importKmz(file);
+                                    alert('KMZ loaded successfully');
+                                    location.reload();
+                                } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+                                    const geojson = await importGeoJson(file);
+                                    displayExternalGeoJSON(geojson);
+                                    updateStatus('外部データを表示しました');
+                                    alert(`GeoJSON loaded successfully: ${file.name}`);
+                                } else {
+                                    alert('Unsupported file type');
+                                }
+                            } catch (err) {
+                                console.error('Error importing file:', err);
+                                alert('Failed to import file: ' + err.message);
+                            } finally {
+                                setUiBusy(false);
+                                fileInput.value = '';
                             }
-                        } catch (err) {
-                            console.error('Error importing file:', err);
-                            alert('Failed to import file: ' + err.message);
-                        } finally {
-                            setUiBusy(false);
-                            // Reset input
-                            fileInput.value = '';
                         }
-                    }
-                });
+                    });
+                }
+                fileInput.click();
             }
-            fileInput.click();
         });
     }
 
-    // New Cloud Save Button
-    document.getElementById('cloudSaveBtn').addEventListener('click', async () => {
-        const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
-        const docName = await showDocNameDialog(defaultName);
-
-        if (docName) {
-            setUiBusy(true);
-            try {
-                await saveToFirebase(docName);
-            } finally {
-                setUiBusy(false);
-            }
-        }
-        returnToMainControl();
-    });
-
-    // New KMZ Save Button
-    document.getElementById('kmzSaveBtn').addEventListener('click', async () => {
-        const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
-        const docName = await showDocNameDialog(defaultName);
-
-        if (docName) {
-            setUiBusy(true);
-            try {
-                const tracks = await getAllTracks();
-                const photos = await getAllPhotos();
-                await exportToKmz(tracks, photos, docName);
-            } catch (e) {
-                console.error('エクスポートエラー:', e);
-                alert('エクスポートに失敗しました: ' + e.message);
-            } finally {
-                setUiBusy(false);
-            }
-        }
-        returnToMainControl();
-    });
-
-    // Legacy Save Button (Now used to toggle Save Options Row)
+    // Save Button: Firebase on → Firebaseに保存 / off → KMZファイルに保存
     const dataSaveBtn = document.getElementById('dataSaveBtn');
     if (dataSaveBtn) {
-        dataSaveBtn.addEventListener('click', () => {
-            const saveOptionsRow = document.getElementById('saveOptionsRow');
-            const loadOptionsRow = document.getElementById('loadOptionsRow');
-
-            if (saveOptionsRow) {
-                if (saveOptionsRow.classList.contains('hidden')) {
-                    saveOptionsRow.classList.remove('hidden');
-                    // Hide load options if open
-                    if (loadOptionsRow) loadOptionsRow.classList.add('hidden');
-                } else {
-                    saveOptionsRow.classList.add('hidden');
+        dataSaveBtn.addEventListener('click', async () => {
+            const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+            if (state.isFirebaseEnabled) {
+                const authed = await ensureFirebaseAuth();
+                if (!authed) return;
+                const docName = await showDocNameDialog(defaultName);
+                if (docName) {
+                    setUiBusy(true);
+                    try {
+                        await saveToFirebase(docName);
+                    } finally {
+                        setUiBusy(false);
+                    }
+                }
+            } else {
+                const docName = await showDocNameDialog(defaultName);
+                if (docName) {
+                    setUiBusy(true);
+                    try {
+                        const tracks = await getAllTracks();
+                        const photos = await getAllPhotos();
+                        await exportToKmz(tracks, photos, docName);
+                    } catch (e) {
+                        console.error('エクスポートエラー:', e);
+                        alert('エクスポートに失敗しました: ' + e.message);
+                    } finally {
+                        setUiBusy(false);
+                    }
                 }
             }
+            returnToMainControl();
         });
     }
 
@@ -316,21 +269,6 @@ function toggleDataPanel() {
 
     if (dataPanel.classList.contains('hidden')) {
         dataPanel.classList.remove('hidden');
-        // Reset save options to hidden when opening panel
-        const saveOptionsRow = document.getElementById('saveOptionsRow');
-        if (saveOptionsRow) {
-            saveOptionsRow.classList.add('hidden');
-        }
-        const loadOptionsRow = document.getElementById('loadOptionsRow');
-        if (loadOptionsRow) {
-            loadOptionsRow.classList.add('hidden');
-        }
-        if (saveOptionsRow) {
-            saveOptionsRow.classList.add('hidden');
-        }
-        if (loadOptionsRow) {
-            loadOptionsRow.classList.add('hidden');
-        }
     } else {
         dataPanel.classList.add('hidden');
     }

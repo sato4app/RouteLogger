@@ -65,6 +65,9 @@ export function setFirebaseAuthReady(value) { firebaseAuthReady = value; }
 export let isClockVisible = true;
 export function setIsClockVisible(value) { isClockVisible = value; }
 
+export let isFirebaseEnabled = false;
+export function setIsFirebaseEnabled(value) { isFirebaseEnabled = value; }
+
 // 配列操作
 export function addPhotoMarker(marker) { photoMarkers.push(marker); }
 export function clearPhotoMarkers() { photoMarkers = []; }
