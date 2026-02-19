@@ -17,36 +17,43 @@ export function initIndexedDB() {
         };
 
         request.onsuccess = () => {
+            console.log('[DB] IndexedDB initialized successfully');
             state.setDb(request.result);
 
             resolve(request.result);
         };
 
         request.onupgradeneeded = (event) => {
+            console.log('[DB] Upgrading IndexedDB...');
             const database = event.target.result;
 
 
             if (!database.objectStoreNames.contains(STORE_TRACKS)) {
+                console.log(`[DB] Creating object store: ${STORE_TRACKS}`);
                 const trackStore = database.createObjectStore(STORE_TRACKS, { keyPath: 'id', autoIncrement: true });
                 trackStore.createIndex('timestamp', 'timestamp', { unique: false });
 
             }
 
             if (!database.objectStoreNames.contains(STORE_PHOTOS)) {
+                console.log(`[DB] Creating object store: ${STORE_PHOTOS}`);
                 const photoStore = database.createObjectStore(STORE_PHOTOS, { keyPath: 'id', autoIncrement: true });
                 photoStore.createIndex('timestamp', 'timestamp', { unique: false });
 
             }
 
             if (!database.objectStoreNames.contains(STORE_SETTINGS)) {
+                console.log(`[DB] Creating object store: ${STORE_SETTINGS}`);
                 database.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
             }
 
             if (!database.objectStoreNames.contains(STORE_EXTERNALS)) {
+                console.log(`[DB] Creating object store: ${STORE_EXTERNALS}`);
                 database.createObjectStore(STORE_EXTERNALS, { keyPath: 'id', autoIncrement: true });
             }
 
             if (!database.objectStoreNames.contains(STORE_EXTERNAL_PHOTOS)) {
+                console.log(`[DB] Creating object store: ${STORE_EXTERNAL_PHOTOS}`);
                 const photoStore = database.createObjectStore(STORE_EXTERNAL_PHOTOS, { keyPath: 'id', autoIncrement: true });
                 // インポートIDやファイル名で検索できるようにインデックスを作成（必要に応じて）
                 photoStore.createIndex('importId', 'importId', { unique: false });
@@ -340,7 +347,11 @@ export async function clearRouteLogData() {
     if (!state.db) {
         throw new Error('データベースが初期化されていません');
     }
+    console.log('[DB] Clearing RouteLog data (tracks, photos)...');
+    console.log(`[DB] Preserving external data (${STORE_EXTERNALS}, ${STORE_EXTERNAL_PHOTOS})...`);
+
     const clearStore = (storeName) => new Promise((resolve, reject) => {
+        console.log(`[DB] Clearing store: ${storeName}`);
         const transaction = state.db.transaction([storeName], 'readwrite');
         const store = transaction.objectStore(storeName);
         const request = store.clear();
@@ -351,6 +362,7 @@ export async function clearRouteLogData() {
     await clearStore(STORE_PHOTOS);
     state.setTrackingStartTime(null);
     state.resetTrackingData();
+    console.log('[DB] RouteLog data cleared.');
 }
 
 /**
@@ -365,9 +377,13 @@ export async function clearIndexedDBSilent() {
             state.setDb(null);
         }
 
+        console.log('[DB] Deleting ENTIRE database (Silent Init)...');
         await new Promise((resolve) => {
             const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-            deleteRequest.onsuccess = () => resolve();
+            deleteRequest.onsuccess = () => {
+                console.log('[DB] Database deleted successfully.');
+                resolve();
+            };
             deleteRequest.onerror = () => {
                 console.error('IndexedDB削除エラー:', deleteRequest.error);
                 resolve(); // エラーでも初期化を続行
@@ -416,7 +432,9 @@ export async function clearIndexedDB() {
 
         const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
 
+        console.log('[DB] Deleting ENTIRE database (User Initiated)...');
         deleteRequest.onsuccess = async () => {
+            console.log('[DB] Database deleted successfully.');
 
             await initIndexedDB();
 
