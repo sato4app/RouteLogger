@@ -161,6 +161,14 @@ export async function loadDocument(doc) {
             await initIndexedDB();
         }
 
+        // ログ出力
+        try {
+            const counts = await getDataCounts();
+            console.log(`[DB Status (Pre-Load)] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
+        } catch (e) {
+            console.error('[DB Status] Error getting counts:', e);
+        }
+
         await clearRouteLogData();
 
         clearMapData();

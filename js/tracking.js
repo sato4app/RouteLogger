@@ -3,7 +3,7 @@
 import { GPS_RECORD_INTERVAL_SEC, GPS_RECORD_DISTANCE_M } from './config.js';
 import * as state from './state.js';
 import { calculateDistance, formatDateTime } from './utils.js';
-import { initIndexedDB, getAllTracks, getAllPhotos, clearRouteLogData, saveLastPosition, saveTrackingDataRealtime, createInitialTrack } from './db.js';
+import { initIndexedDB, getAllTracks, getAllPhotos, clearRouteLogData, saveLastPosition, saveTrackingDataRealtime, createInitialTrack, getDataCounts } from './db.js';
 import { calculateTrackStats, calculateHeading } from './utils.js';
 import { updateCurrentMarker, updateTrackingPath, clearMapData, addStartMarker } from './map.js';
 import { updateStatus, updateCoordinates, updateDataSizeIfOpen, showClearDataDialog, updateUiForTrackingState } from './ui.js';
@@ -263,6 +263,12 @@ export async function startTracking() {
 
         if (result === 'init') {
             if (hasData) {
+                try {
+                    const counts = await getDataCounts();
+                    console.log(`[DB Status (Pre-Clear)] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
+                } catch (e) {
+                    console.error('[DB Status] Error getting counts:', e);
+                }
                 clearMapData();
                 await clearRouteLogData();
 

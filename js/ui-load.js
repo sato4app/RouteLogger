@@ -128,6 +128,14 @@ async function handleKmzUpload(event) {
         if (result.type === 'RouteLogger') {
             // RouteLogger形式の場合: 既存データをクリアして復元
             if (confirm('現在の記録データをクリアして、このファイルを読み込みますか？')) {
+                // ログ出力
+                try {
+                    const counts = await getDataCounts();
+                    console.log(`[DB Status (Pre-Load)] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
+                } catch (e) {
+                    console.error('[DB Status] Error getting counts:', e);
+                }
+
                 updateStatus('データをリセット中...');
                 await clearRouteLogData();
 
