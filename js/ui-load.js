@@ -1,6 +1,6 @@
 import { toggleVisibility, updateStatus, setUiBusy } from './ui-common.js';
 import { reloadFromFirebase } from './firebase-ops.js';
-import { saveExternalData, restoreTrack, savePhoto, clearIndexedDBSilent } from './db.js';
+import { saveExternalData, restoreTrack, savePhoto, clearRouteLogData } from './db.js';
 import { displayExternalGeoJSON, displayPhotoMarkers, updateTrackingPath } from './map.js';
 import { importKmz } from './kmz-handler.js';
 
@@ -129,7 +129,7 @@ async function handleKmzUpload(event) {
             // RouteLogger形式の場合: 既存データをクリアして復元
             if (confirm('現在の記録データをクリアして、このファイルを読み込みますか？')) {
                 updateStatus('データをリセット中...');
-                await clearIndexedDBSilent();
+                await clearRouteLogData();
 
                 updateStatus('トラックデータを復元中...');
                 if (result.tracks && result.tracks.length > 0) {

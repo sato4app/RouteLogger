@@ -3,7 +3,7 @@
 import { GPS_RECORD_INTERVAL_SEC, GPS_RECORD_DISTANCE_M } from './config.js';
 import * as state from './state.js';
 import { calculateDistance, formatDateTime } from './utils.js';
-import { initIndexedDB, getAllTracks, getAllPhotos, clearIndexedDBSilent, saveLastPosition, saveTrackingDataRealtime, createInitialTrack } from './db.js';
+import { initIndexedDB, getAllTracks, getAllPhotos, clearRouteLogData, saveLastPosition, saveTrackingDataRealtime, createInitialTrack } from './db.js';
 import { calculateTrackStats, calculateHeading } from './utils.js';
 import { updateCurrentMarker, updateTrackingPath, clearMapData, addStartMarker } from './map.js';
 import { updateStatus, updateCoordinates, updateDataSizeIfOpen, showClearDataDialog, updateUiForTrackingState } from './ui.js';
@@ -264,7 +264,7 @@ export async function startTracking() {
         if (result === 'init') {
             if (hasData) {
                 clearMapData();
-                await clearIndexedDBSilent();
+                await clearRouteLogData();
 
             }
         } else if (result === 'append') {

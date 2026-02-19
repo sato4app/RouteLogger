@@ -3,7 +3,7 @@
 import { STORE_TRACKS, STORE_PHOTOS } from './config.js';
 import * as state from './state.js';
 import { formatPositionData, base64ToBlob, calculateTrackStats, calculateHeading } from './utils.js';
-import { getAllTracks, getAllPhotos, initIndexedDB, clearIndexedDBSilent } from './db.js';
+import { getAllTracks, getAllPhotos, initIndexedDB, clearRouteLogData } from './db.js';
 import { clearMapData, addStartMarker, addEndMarker, removeCurrentMarker, displayPhotoMarkers } from './map.js';
 import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromMarker, closeDocumentListDialog, setUiBusy } from './ui.js';
 
@@ -157,12 +157,11 @@ export async function loadDocument(doc) {
 
         const data = doc.data;
 
-        await clearIndexedDBSilent();
-
-
         if (!state.db) {
             await initIndexedDB();
         }
+
+        await clearRouteLogData();
 
         clearMapData();
 
