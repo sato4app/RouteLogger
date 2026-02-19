@@ -166,8 +166,10 @@ export async function displayPhotoMarkers(onMarkerClick) {
  */
 /**
  * 地図上のマーカーと軌跡をクリア
+ * @param {Object} options - オプション
+ * @param {boolean} options.keepExternal - 外部データを保持するかどうか (default: false)
  */
-export function clearMapData() {
+export function clearMapData(options = { keepExternal: false }) {
     if (state.trackingPath) {
         state.trackingPath.setLatLngs([]);
 
@@ -179,8 +181,10 @@ export function clearMapData() {
     state.routeMarkers.forEach(marker => state.map.removeLayer(marker));
     state.clearRouteMarkers();
 
-    state.externalLayers.forEach(layer => state.map.removeLayer(layer));
-    state.clearExternalLayers();
+    if (!options.keepExternal) {
+        state.externalLayers.forEach(layer => state.map.removeLayer(layer));
+        state.clearExternalLayers();
+    }
 }
 
 /**

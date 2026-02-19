@@ -171,7 +171,7 @@ export async function loadDocument(doc) {
 
         await clearRouteLogData();
 
-        clearMapData();
+        clearMapData({ keepExternal: true });
 
         // トラックデータを保存して表示
         if (data.tracks && data.tracks.length > 0) {

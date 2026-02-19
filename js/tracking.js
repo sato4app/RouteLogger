@@ -269,7 +269,7 @@ export async function startTracking() {
                 } catch (e) {
                     console.error('[DB Status] Error getting counts:', e);
                 }
-                clearMapData();
+                clearMapData({ keepExternal: true });
                 await clearRouteLogData();
 
             }
