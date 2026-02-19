@@ -821,7 +821,7 @@ body {
 #clearBtn {
     position: absolute;
     top: auto;
-    bottom: 94px;
+    bottom: 114px;
     left: 50%;
     transform: translateX(-50%);
     margin-left: -136px;
@@ -843,7 +843,7 @@ body {
 #clockDisplay {
     position: absolute;
     top: auto;
-    bottom: 130px;
+    bottom: 150px;
     /* Aligned slightly above buttons */
     left: 50%;
     transform: translateX(-50%);
