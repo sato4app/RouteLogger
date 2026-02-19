@@ -334,6 +334,26 @@ export async function saveTrackingDataRealtime() {
 }
 
 /**
+ * RouteLogデータのみクリア（tracks・photosのみ、externals・external_photosは保持）
+ */
+export async function clearRouteLogData() {
+    if (!state.db) {
+        throw new Error('データベースが初期化されていません');
+    }
+    const clearStore = (storeName) => new Promise((resolve, reject) => {
+        const transaction = state.db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+    await clearStore(STORE_TRACKS);
+    await clearStore(STORE_PHOTOS);
+    state.setTrackingStartTime(null);
+    state.resetTrackingData();
+}
+
+/**
  * IndexedDBをサイレント初期化（Start時用）
  */
 export async function clearIndexedDBSilent() {
@@ -359,10 +379,6 @@ export async function clearIndexedDBSilent() {
         });
 
         await initIndexedDB();
-
-
-        const tracksAfter = await getAllTracks();
-        const photosAfter = await getAllPhotos();
 
 
         if (lastPosition) {
