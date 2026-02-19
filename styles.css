@@ -821,12 +821,12 @@ body {
 #clearBtn {
     position: absolute;
     top: auto;
-    bottom: 120px;
+    bottom: 116px;
     left: 50%;
     transform: translateX(-50%);
     margin-left: -136px;
     z-index: 900;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-main);
     background: rgba(255, 255, 255, 0.7);
@@ -843,14 +843,14 @@ body {
 #clockDisplay {
     position: absolute;
     top: auto;
-    bottom: 150px;
+    bottom: 154px;
     /* Aligned slightly above buttons */
     left: 50%;
     transform: translateX(-50%);
     margin-left: -136px;
     /* Offset for first column */
     z-index: 900;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-main);
     background: rgba(255, 255, 255, 0.7);
