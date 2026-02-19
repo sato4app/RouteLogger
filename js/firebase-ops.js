@@ -3,7 +3,7 @@
 import { STORE_TRACKS, STORE_PHOTOS } from './config.js';
 import * as state from './state.js';
 import { formatPositionData, base64ToBlob, calculateTrackStats, calculateHeading } from './utils.js';
-import { getAllTracks, getAllPhotos, initIndexedDB, clearRouteLogData } from './db.js';
+import { getAllTracks, getAllPhotos, initIndexedDB, clearRouteLogData, getDataCounts } from './db.js';
 import { clearMapData, addStartMarker, addEndMarker, removeCurrentMarker, displayPhotoMarkers } from './map.js';
 import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromMarker, closeDocumentListDialog, setUiBusy } from './ui.js';
 
@@ -184,6 +184,14 @@ export async function loadDocument(doc) {
         const actualPhotos = await getAllPhotos();
 
         updateStatus(`データを読み込みました:\n${doc.id}`);
+
+        try {
+            const counts = await getDataCounts();
+            console.log(`[DB Status] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
+        } catch (e) {
+            console.error('[DB Status] Error getting counts:', e);
+        }
+
         alert(`データを読み込みました\nドキュメント名: ${doc.id}\n記録点数: ${trackStats.totalPoints}件\n写真: ${actualPhotos.length}枚`);
 
     } catch (error) {

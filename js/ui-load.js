@@ -1,6 +1,6 @@
 import { toggleVisibility, updateStatus, setUiBusy } from './ui-common.js';
 import { reloadFromFirebase } from './firebase-ops.js';
-import { saveExternalData, restoreTrack, savePhoto, clearRouteLogData } from './db.js';
+import { saveExternalData, restoreTrack, savePhoto, clearRouteLogData, getDataCounts } from './db.js';
 import { displayExternalGeoJSON, displayPhotoMarkers, updateTrackingPath } from './map.js';
 import { importKmz } from './kmz-handler.js';
 
@@ -164,6 +164,15 @@ async function handleKmzUpload(event) {
                 }
 
                 alert(`読み込み完了: ${file.name}\n反映するためページをリロードします。`);
+
+                // ログ出力（リロード前だが一応）
+                try {
+                    const counts = await getDataCounts();
+                    console.log(`[DB Status] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
+                } catch (e) {
+                    console.error('[DB Status] Error getting counts:', e);
+                }
+
                 location.reload();
             }
         } else {

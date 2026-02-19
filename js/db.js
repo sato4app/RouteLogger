@@ -583,3 +583,43 @@ export function getExternalPhoto(importId, fileName) {
         request.onerror = () => reject(request.error);
     });
 }
+
+/**
+ * 各ストアのデータ件数を取得
+ * @returns {Promise<Object>}
+ */
+export async function getDataCounts() {
+    if (!state.db) {
+        console.warn('[DB] Database not initialized for counting');
+        return { tracks: 0, photos: 0, externals: 0, externalPhotos: 0 };
+    }
+
+    const getCount = (storeName) => new Promise((resolve) => {
+        try {
+            const transaction = state.db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.count();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => {
+                console.warn(`[DB] Error counting ${storeName}:`, e);
+                resolve(0);
+            };
+        } catch (e) {
+            console.warn(`[DB] Store ${storeName} not found or error:`, e);
+            resolve(0);
+        }
+    });
+
+    try {
+        const counts = {
+            tracks: await getCount(STORE_TRACKS),
+            photos: await getCount(STORE_PHOTOS),
+            externals: await getCount(STORE_EXTERNALS),
+            externalPhotos: await getCount(STORE_EXTERNAL_PHOTOS)
+        };
+        return counts;
+    } catch (e) {
+        console.error('[DB] Error getting counts:', e);
+        return { tracks: 0, photos: 0, externals: 0, externalPhotos: 0 };
+    }
+}
