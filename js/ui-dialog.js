@@ -64,6 +64,11 @@ export function showDocumentListDialog(documents, onLoad) {
     const documentList = document.getElementById('documentList');
     documentList.innerHTML = '';
 
+    const loadPhotosCheckbox = document.getElementById('loadPhotosCheckbox');
+    if (loadPhotosCheckbox) {
+        loadPhotosCheckbox.checked = true; // Default: checked
+    }
+
     documents.forEach(doc => {
         const docItem = document.createElement('div');
         docItem.className = 'doc-item';
@@ -87,7 +92,10 @@ export function showDocumentListDialog(documents, onLoad) {
         docItem.appendChild(meta);
         docItem.appendChild(stats);
 
-        docItem.onclick = () => onLoad(doc);
+        docItem.onclick = () => {
+            const loadPhotos = loadPhotosCheckbox ? loadPhotosCheckbox.checked : true;
+            onLoad(doc, loadPhotos);
+        };
         documentList.appendChild(docItem);
     });
 

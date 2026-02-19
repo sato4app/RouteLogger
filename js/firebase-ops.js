@@ -3,7 +3,7 @@
 import { STORE_TRACKS, STORE_PHOTOS } from './config.js';
 import * as state from './state.js';
 import { formatPositionData, base64ToBlob, calculateTrackStats, calculateHeading } from './utils.js';
-import { getAllTracks, getAllPhotos, initIndexedDB, clearRouteLogData, getDataCounts } from './db.js';
+import { getAllTracks, getAllPhotos, initIndexedDB, clearRouteLogData } from './db.js';
 import { clearMapData, addStartMarker, addEndMarker, removeCurrentMarker, displayPhotoMarkers } from './map.js';
 import { updateStatus, showDocNameDialog, showDocumentListDialog, showPhotoFromMarker, closeDocumentListDialog, setUiBusy } from './ui.js';
 
@@ -148,8 +148,9 @@ export async function reloadFromFirebase() {
 /**
  * 選択したドキュメントを読み込んで地図に表示
  * @param {Object} doc - ドキュメント
+ * @param {boolean} loadPhotos - 写真を読み込むかどうか
  */
-export async function loadDocument(doc) {
+export async function loadDocument(doc, loadPhotos = true) {
     try {
         setUiBusy(true);
         updateStatus('データを読み込み中...');
@@ -159,14 +160,6 @@ export async function loadDocument(doc) {
 
         if (!state.db) {
             await initIndexedDB();
-        }
-
-        // ログ出力
-        try {
-            const counts = await getDataCounts();
-            console.log(`[DB Status (Pre-Load)] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
-        } catch (e) {
-            console.error('[DB Status] Error getting counts:', e);
         }
 
         await clearRouteLogData();
@@ -179,7 +172,7 @@ export async function loadDocument(doc) {
         }
 
         // 写真をダウンロードして保存・表示
-        if (data.photos && data.photos.length > 0) {
+        if (loadPhotos && data.photos && data.photos.length > 0) {
             await restorePhotos(data.photos, state.db);
         }
 
@@ -193,14 +186,13 @@ export async function loadDocument(doc) {
 
         updateStatus(`データを読み込みました:\n${doc.id}`);
 
-        try {
-            const counts = await getDataCounts();
-            console.log(`[DB Status] Tracks: ${counts.tracks}, Photos: ${counts.photos}, Externals: ${counts.externals}, External Photos: ${counts.externalPhotos}`);
-        } catch (e) {
-            console.error('[DB Status] Error getting counts:', e);
+        let msg = `データを読み込みました\nドキュメント名: ${doc.id}\n記録点数: ${trackStats.totalPoints}件`;
+        if (loadPhotos) {
+            msg += `\n写真: ${actualPhotos.length}枚`;
+        } else {
+            msg += `\n(写真は読み込まれませんでした)`;
         }
-
-        alert(`データを読み込みました\nドキュメント名: ${doc.id}\n記録点数: ${trackStats.totalPoints}件\n写真: ${actualPhotos.length}枚`);
+        alert(msg);
 
     } catch (error) {
         console.error('ドキュメント読み込みエラー:', error);
