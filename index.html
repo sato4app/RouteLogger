@@ -47,8 +47,9 @@
     <div id="dataPanel" class="hidden">
         <!-- Row 2: Standard Data Actions -->
         <div class="data-row glass-panel">
-            <!-- Spacer to align with Start button -->
-            <div class="action-btn spacer" style="visibility: hidden; min-width: 60px;"></div>
+            <button id="clearBtn" class="action-btn" title="Clear Data">
+                <span>Clear</span>
+            </button>
             <button id="photoListBtn" class="action-btn" title="Photos">
                 <div class="icon-box photos-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -101,9 +102,6 @@
 
     <!-- Main Controls -->
     <div id="controls" class="panel">
-        <button id="clearBtn" class="action-btn" title="Clear Data">
-            <span>Clear</span>
-        </button>
         <button id="startBtn" class="action-btn main-action" title="Start Tracking">
             <div class="icon-box start-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
