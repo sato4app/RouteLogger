@@ -114,7 +114,14 @@ function setupEventListeners() {
     document.getElementById('clearBtn').addEventListener('click', async () => {
         if (confirm('表示中のルートとマーカーを消去し、データを初期化しますか？')) {
             clearMapData();
-            await clearIndexedDBSilent();
+            try {
+                await clearIndexedDBSilent();
+            } catch (e) {
+                console.error('IndexedDB初期化エラー:', e);
+                if (!state.db) {
+                    await initIndexedDB();
+                }
+            }
             updateStatus('データを初期化しました');
         }
     });

@@ -345,31 +345,18 @@ export async function clearIndexedDBSilent() {
             state.setDb(null);
         }
 
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        while (retryCount < maxRetries) {
-            try {
-                await new Promise((resolve, reject) => {
-                    const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-                    deleteRequest.onsuccess = () => {
-
-                        resolve();
-                    };
-                    deleteRequest.onerror = () => reject(deleteRequest.error);
-                    deleteRequest.onblocked = () => {
-                        console.warn(`IndexedDB削除がブロックされました (試行 ${retryCount + 1}/${maxRetries})`);
-                        reject(new Error('データベースが使用中です'));
-                    };
-                });
-                break;
-            } catch (deleteError) {
-                retryCount++;
-                if (retryCount >= maxRetries) throw deleteError;
-
-                await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
-            }
-        }
+        await new Promise((resolve) => {
+            const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+            deleteRequest.onsuccess = () => resolve();
+            deleteRequest.onerror = () => {
+                console.error('IndexedDB削除エラー:', deleteRequest.error);
+                resolve(); // エラーでも初期化を続行
+            };
+            deleteRequest.onblocked = () => {
+                console.warn('IndexedDB削除がブロックされました - 2秒後に続行');
+                setTimeout(resolve, 2000);
+            };
+        });
 
         await initIndexedDB();
 
