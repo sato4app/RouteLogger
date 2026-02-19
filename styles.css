@@ -817,6 +817,23 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
+/* Clear Button */
+#clearBtn {
+    justify-content: center;
+    min-height: 70px;
+    min-width: 50px;
+}
+
+#clearBtn span {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--danger-color);
+    padding: 6px 10px;
+    background: rgba(255, 59, 48, 0.1);
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(255, 59, 48, 0.3);
+}
+
 /* Clock Display */
 #clockDisplay {
     position: absolute;

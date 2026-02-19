@@ -9,7 +9,7 @@ import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
 import { initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos, clearIndexedDBSilent, restoreTrack, savePhoto } from './db.js';
-import { displayExternalGeoJSON, displayAllTracks } from './map.js';
+import { displayExternalGeoJSON, displayAllTracks, clearMapData } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
 
 /**
@@ -111,6 +111,13 @@ async function ensureFirebaseAuth() {
  */
 function setupEventListeners() {
     // メインコントロール
+    document.getElementById('clearBtn').addEventListener('click', async () => {
+        if (confirm('表示中のルートとマーカーを消去し、データを初期化しますか？')) {
+            clearMapData();
+            await clearIndexedDBSilent();
+            updateStatus('データを初期化しました');
+        }
+    });
     document.getElementById('startBtn').addEventListener('click', startTracking);
     document.getElementById('stopBtn').addEventListener('click', stopTracking);
     document.getElementById('photoBtn').addEventListener('click', takePhoto);
