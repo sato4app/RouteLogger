@@ -281,8 +281,13 @@ body {
     gap: 8px;
     width: 100%;
     align-items: center;
-    /* Align vertically in row */
 }
+
+#clearBtn      { grid-column: 1; grid-row: 2; }
+#photoListBtn  { grid-column: 2; grid-row: 1; }
+#dataSizeBtn   { grid-column: 3; grid-row: 1; }
+#dataSaveBtn   { grid-column: 4; grid-row: 1; }
+#dataReloadBtn { grid-column: 5; grid-row: 1; }
 
 .wide-action-btn {
     grid-column: span 2;
