@@ -203,6 +203,7 @@ function setupEventListeners() {
                                     if (confirm('現在の記録データをクリアして、このファイルを読み込みますか？')) {
                                         updateStatus('データをリセット中...');
                                         await clearRouteLogData();
+                                        clearMapData({ keepExternal: true });
                                         updateStatus('トラックデータを復元中...');
                                         for (const track of result.tracks) {
                                             await restoreTrack(track);
