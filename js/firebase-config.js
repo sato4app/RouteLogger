@@ -17,10 +17,4 @@ const firebaseConfig = {
 // Firebaseアプリの初期化
 firebase.initializeApp(firebaseConfig);
 
-// Firestoreの参照を取得
-const firestoreDb = firebase.firestore();
-
-// Storageの参照を取得
-const storage = firebase.storage();
-
 
