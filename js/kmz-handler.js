@@ -44,8 +44,8 @@ export async function exportToKmz(tracks, photos, filename) {
       // 拡張子がなければ付ける
       downloadName = filename.endsWith('.kmz') ? filename : `${filename}.kmz`;
     } else {
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      downloadName = `RouteLog_${dateStr}.kmz`;
+      const dateStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+      downloadName = `RLog_${dateStr}.kmz`;
     }
 
     saveAs(content, downloadName);
