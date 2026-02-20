@@ -285,9 +285,8 @@ body {
 
 #clearBtn {
     grid-column: 1;
-    grid-row: 1;
     position: relative;
-    top: 40px;
+    top: 20px;
     background: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     backdrop-filter: blur(4px);
@@ -304,10 +303,10 @@ body {
     color: var(--text-main);
 }
 
-#photoListBtn  { grid-column: 2; grid-row: 1; }
-#dataSizeBtn   { grid-column: 3; grid-row: 1; }
-#dataSaveBtn   { grid-column: 4; grid-row: 1; }
-#dataReloadBtn { grid-column: 5; grid-row: 1; }
+#photoListBtn  { grid-column: 2; }
+#dataSizeBtn   { grid-column: 3; }
+#dataSaveBtn   { grid-column: 4; }
+#dataReloadBtn { grid-column: 5; }
 
 .wide-action-btn {
     grid-column: span 2;
