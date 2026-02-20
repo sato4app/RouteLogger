@@ -240,7 +240,7 @@ function setupEventListeners() {
     const dataSaveBtn = document.getElementById('dataSaveBtn');
     if (dataSaveBtn) {
         dataSaveBtn.addEventListener('click', async () => {
-            const defaultName = `RouteLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+            const defaultName = `RLog_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
             if (state.isFirebaseEnabled) {
                 const authed = await ensureFirebaseAuth();
                 if (!authed) return;

@@ -217,6 +217,7 @@ export function showClearDataDialog(message, hasData) {
         const body = document.getElementById('clearDataBody');
         const initBtn = document.getElementById('clearDataInitBtn');
         const appendBtn = document.getElementById('clearDataAppendBtn');
+        const cancelBtn = document.getElementById('clearDataCancelBtn');
         const title = document.querySelector('#clearDataDialog h2');
 
         if (!body || !initBtn || !appendBtn || !title) {
@@ -233,12 +234,14 @@ export function showClearDataDialog(message, hasData) {
             initBtn.classList.add('danger-btn');
             appendBtn.textContent = 'Continue (Append)';
             appendBtn.style.display = 'block';
+            if (cancelBtn) cancelBtn.style.display = 'block';
         } else {
             title.textContent = 'Start Recording';
             initBtn.textContent = 'Start';
             initBtn.classList.remove('danger-btn');
             appendBtn.textContent = 'Cancel';
             appendBtn.style.display = 'block';
+            if (cancelBtn) cancelBtn.style.display = 'none';
         }
 
         const handleInit = () => {
@@ -255,12 +258,19 @@ export function showClearDataDialog(message, hasData) {
             }
         };
 
+        const handleCancel = () => {
+            cleanup();
+            resolve('cancel');
+        };
+
         initBtn.onclick = handleInit;
         appendBtn.onclick = handleAppend;
+        if (cancelBtn) cancelBtn.onclick = handleCancel;
 
         const cleanup = () => {
             initBtn.onclick = null;
             appendBtn.onclick = null;
+            if (cancelBtn) cancelBtn.onclick = null;
             toggleVisibility(dialogId, false);
         };
 
