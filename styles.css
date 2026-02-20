@@ -817,27 +817,6 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-/* Clear Button (時計と同じ見た目・サイズ、時計の直下に配置) */
-#clearBtn {
-    position: absolute;
-    top: auto;
-    bottom: 116px;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-left: -136px;
-    z-index: 900;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.7);
-    padding: 4px 8px;
-    border-radius: 8px;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.3s;
-}
 
 /* Clock Display */
 #clockDisplay {

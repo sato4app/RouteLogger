@@ -112,13 +112,19 @@ export function formatDateTime(date) {
  * @returns {string} フォーマット済みサイズ
  */
 export function formatDataSize(bytes) {
-    const sizeMB = bytes / (1024 * 1024);
-    if (sizeMB > 10) {
-        return sizeMB.toPrecision(4) + ' MB';
-    } else {
-        const sizeKB = bytes / 1024;
-        return sizeKB.toPrecision(4) + ' KB';
+    if (bytes < 1024) {
+        return bytes + ' B';
     }
+    const sizeKB = bytes / 1024;
+    if (sizeKB <= 10 * 1024) { // 10MB以下はKB表示
+        return parseFloat(sizeKB.toPrecision(4)) + ' KB';
+    }
+    const sizeMB = bytes / (1024 * 1024);
+    if (sizeMB < 1024) {
+        return parseFloat(sizeMB.toPrecision(4)) + ' MB';
+    }
+    const sizeGB = bytes / (1024 * 1024 * 1024);
+    return parseFloat(sizeGB.toPrecision(4)) + ' GB';
 }
 /**
  * 直近のポイントから進行方向を計算
