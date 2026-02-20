@@ -163,9 +163,14 @@ function setupEventListeners() {
         updateDialUI(snapped);
     }
 
-    document.getElementById('dirAngleLeft').addEventListener('click', () => setDialAngle(currentDialAngle - 10));
-    document.getElementById('dirAngleRight').addEventListener('click', () => setDialAngle(currentDialAngle + 10));
-    document.getElementById('dirSetBtn').addEventListener('click', () => savePhotoWithDirection(currentDialAngle));
+    document.getElementById('dirAngleLeft').addEventListener('click', () => {
+        setDialAngle(currentDialAngle - 10);
+        savePhotoWithDirection(currentDialAngle);
+    });
+    document.getElementById('dirAngleRight').addEventListener('click', () => {
+        setDialAngle(currentDialAngle + 10);
+        savePhotoWithDirection(currentDialAngle);
+    });
 
     // ダイアルのタッチ/マウスドラッグ操作
     const dialEl = document.getElementById('directionDial');
@@ -193,7 +198,10 @@ function setupEventListeners() {
             setDialAngle(getAngleFromEvent(t.clientX, t.clientY));
         }, { passive: false });
 
-        dialEl.addEventListener('touchend', () => { isDragging = false; });
+        dialEl.addEventListener('touchend', () => {
+            if (isDragging) savePhotoWithDirection(currentDialAngle);
+            isDragging = false;
+        });
 
         dialEl.addEventListener('mousedown', () => {
             isDragging = true;
@@ -206,7 +214,10 @@ function setupEventListeners() {
             setDialAngle(getAngleFromEvent(e.clientX, e.clientY));
         });
 
-        document.addEventListener('mouseup', () => { isDragging = false; });
+        document.addEventListener('mouseup', () => {
+            if (isDragging) savePhotoWithDirection(currentDialAngle);
+            isDragging = false;
+        });
     }
 
     // Dataボタン（パネル表示切り替え）
