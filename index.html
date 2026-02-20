@@ -319,24 +319,26 @@
         <!-- Direction Overlay -->
         <div id="directionButtons" class="camera-controls hidden">
             <div class="direction-hint">Select Direction</div>
-            <div class="direction-row">
-                <button id="dirLeftBtn" class="dir-btn" data-direction="left">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
+            <div class="direction-dial-wrapper">
+                <div class="direction-dial" id="directionDial">
+                    <svg id="dialSvg" viewBox="0 0 100 100" width="120" height="120">
+                        <circle cx="50" cy="50" r="46" fill="rgba(255,255,255,0.92)" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
+                        <line x1="50" y1="4" x2="50" y2="12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+                        <g id="dialArrowGroup" transform="rotate(0, 50, 50)">
+                            <polygon points="50,10 45,28 55,28" fill="#2196F3"/>
+                            <rect x="47.5" y="28" width="5" height="18" rx="2" fill="#2196F3"/>
+                        </g>
+                        <circle cx="50" cy="50" r="4" fill="#555"/>
                     </svg>
-                </button>
-                <button id="dirUpBtn" class="dir-btn" data-direction="up">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 19V5M5 12l7-7 7 7" />
-                    </svg>
-                </button>
-                <button id="dirRightBtn" class="dir-btn" data-direction="right">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                </button>
+                </div>
+                <div class="direction-angle-row">
+                    <button id="dirAngleLeft" class="dir-angle-btn">◀</button>
+                    <span id="dirAngleDisplay" class="dir-angle-display">0°</span>
+                    <button id="dirAngleRight" class="dir-angle-btn">▶</button>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 20px;">
+            <div style="display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 16px;">
+                <button id="dirSetBtn" class="camera-action-btn">Set</button>
                 <button id="cameraBackBtn" class="camera-action-btn">Retake</button>
                 <button id="cameraTextBtn" class="camera-action-btn">Text</button>
                 <button id="cameraCloseAfterShotBtn" class="camera-action-btn icon-only">

@@ -131,17 +131,83 @@ function setupEventListeners() {
 
     // カメラUI
     document.getElementById('cameraCloseBtn').addEventListener('click', closeCameraDialog);
-    document.getElementById('cameraShutterBtn').addEventListener('click', capturePhoto);
+    document.getElementById('cameraShutterBtn').addEventListener('click', async () => {
+        await capturePhoto();
+        resetDirectionDial();
+    });
     document.getElementById('cameraBackBtn').addEventListener('click', retakePhoto);
     document.getElementById('cameraTextBtn').addEventListener('click', handleTextButton);
     document.getElementById('cameraCloseAfterShotBtn').addEventListener('click', closeCameraDialog);
 
-    // 方向ボタン
-    document.querySelectorAll('.dir-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            savePhotoWithDirection(btn.dataset.direction);
+    // 方向ダイアル
+    let currentDialAngle = 0;
+
+    function resetDirectionDial() {
+        currentDialAngle = 0;
+        updateDialUI(0);
+    }
+
+    function updateDialUI(angle) {
+        const display = document.getElementById('dirAngleDisplay');
+        const arrowGroup = document.getElementById('dialArrowGroup');
+        if (display) display.textContent = angle > 0 ? `+${angle}°` : `${angle}°`;
+        if (arrowGroup) arrowGroup.setAttribute('transform', `rotate(${angle}, 50, 50)`);
+    }
+
+    function setDialAngle(raw) {
+        // 10°単位にスナップ、-180〜+180 の範囲でラップ
+        let snapped = Math.round(raw / 10) * 10;
+        if (snapped > 180) snapped -= 360;
+        if (snapped < -180) snapped += 360;
+        currentDialAngle = snapped;
+        updateDialUI(snapped);
+    }
+
+    document.getElementById('dirAngleLeft').addEventListener('click', () => setDialAngle(currentDialAngle - 10));
+    document.getElementById('dirAngleRight').addEventListener('click', () => setDialAngle(currentDialAngle + 10));
+    document.getElementById('dirSetBtn').addEventListener('click', () => savePhotoWithDirection(currentDialAngle));
+
+    // ダイアルのタッチ/マウスドラッグ操作
+    const dialEl = document.getElementById('directionDial');
+    if (dialEl) {
+        let isDragging = false;
+        let dialCenter = { x: 0, y: 0 };
+
+        const getAngleFromEvent = (clientX, clientY) => {
+            const dx = clientX - dialCenter.x;
+            const dy = clientY - dialCenter.y;
+            return Math.atan2(dx, -dy) * (180 / Math.PI);
+        };
+
+        dialEl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            const rect = dialEl.getBoundingClientRect();
+            dialCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }, { passive: false });
+
+        dialEl.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            const t = e.touches[0];
+            setDialAngle(getAngleFromEvent(t.clientX, t.clientY));
+        }, { passive: false });
+
+        dialEl.addEventListener('touchend', () => { isDragging = false; });
+
+        dialEl.addEventListener('mousedown', () => {
+            isDragging = true;
+            const rect = dialEl.getBoundingClientRect();
+            dialCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
         });
-    });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            setDialAngle(getAngleFromEvent(e.clientX, e.clientY));
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+    }
 
     // Dataボタン（パネル表示切り替え）
     document.getElementById('dataBtn').addEventListener('click', toggleDataPanel);

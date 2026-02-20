@@ -9,9 +9,21 @@ import { addPhotoMarkerToMap, removePhotoMarker } from './map.js';
 import { updateStatus, updateDataSizeIfOpen, showPhotoFromMarker } from './ui.js';
 
 /**
+ * 方向値（数値または旧文字列）をラジアンに変換
+ * @param {number|string} direction
+ * @returns {number} ラジアン
+ */
+function directionToRad(direction) {
+    if (typeof direction === 'number') return direction * Math.PI / 180;
+    if (direction === 'left') return -60 * Math.PI / 180;
+    if (direction === 'right') return 60 * Math.PI / 180;
+    return 0; // 'up', 'forward', null, ''
+}
+
+/**
  * 矢印スタンプを画像に描画
  * @param {string} base64Image - Base64画像データ
- * @param {string} direction - 方向（left/up/right）
+ * @param {number|string} direction - 角度（度数、正=右）または旧文字列（left/up/right）
  * @returns {Promise<string>} スタンプ済み画像のBase64
  */
 export async function drawArrowStamp(base64Image, direction) {
@@ -46,11 +58,7 @@ export async function drawArrowStamp(base64Image, direction) {
             ctx.save();
             ctx.translate(centerX, bottomY);
 
-            if (direction === 'left') {
-                ctx.rotate(-Math.PI / 4);
-            } else if (direction === 'right') {
-                ctx.rotate(Math.PI / 4);
-            }
+            ctx.rotate(directionToRad(direction));
 
             const arrowWidth = arrowSize * 0.5;
             const arrowHeight = arrowSize * 0.6;
@@ -287,7 +295,7 @@ export async function capturePhoto() {
 
 /**
  * 方向を選択して写真を保存
- * @param {string} direction - 方向（left/up/right）
+ * @param {number|string} direction - 角度（度数、正=右）または旧文字列（left/up/right）
  */
 export async function savePhotoWithDirection(direction) {
     if (!state.capturedPhotoData) {
@@ -296,15 +304,6 @@ export async function savePhotoWithDirection(direction) {
     }
 
     try {
-        // 方向ボタンのスタイル更新
-        document.querySelectorAll('.dir-btn').forEach(btn => {
-            if (btn.dataset.direction === direction) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-        });
-
         const stampedPhotoData = await drawArrowStamp(state.capturedPhotoData, direction);
 
 
@@ -350,7 +349,10 @@ export async function savePhotoWithDirection(direction) {
         }
 
         // closeCameraDialog(); // 連続撮影・確認のため閉じない
-        updateStatus(`写真を${state.currentPhotoId ? '更新' : '保存'}しました（方向: ${direction}）`);
+        const dirLabel = typeof direction === 'number'
+            ? (direction > 0 ? `+${direction}°` : `${direction}°`)
+            : direction;
+        updateStatus(`写真を${state.currentPhotoId ? '更新' : '保存'}しました（方向: ${dirLabel}）`);
 
         setTimeout(() => {
             if (state.isTracking) {

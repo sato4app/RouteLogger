@@ -751,49 +751,55 @@ body {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-.direction-row {
+.direction-dial-wrapper {
     display: flex;
-    gap: 40px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
-.dir-btn {
-    width: 60px;
-    height: 60px;
+.direction-dial {
+    width: 120px;
+    height: 120px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.direction-angle-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.dir-angle-btn {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
     border: none;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s;
+    transition: background 0.15s;
 }
 
-.dir-btn.selected {
+.dir-angle-btn:active {
     background: #2196F3;
-    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
-    transform: scale(1.1);
+    color: white;
 }
 
-.dir-btn.selected svg {
-    stroke: white;
-}
-
-.dir-btn svg {
-    width: 32px;
-    height: 32px;
-    stroke: black;
-    stroke-width: 2;
-    fill: none;
-}
-
-#dirLeftBtn svg {
-    transform: rotate(45deg);
-}
-
-#dirRightBtn svg {
-    transform: rotate(-45deg);
+.dir-angle-display {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    min-width: 64px;
+    text-align: center;
 }
 
 /* Document List */

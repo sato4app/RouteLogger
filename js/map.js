@@ -5,6 +5,21 @@ import * as state from './state.js';
 import { getLastPosition, getAllPhotos, getExternalPhoto } from './db.js';
 
 /**
+ * 方向値を表示用文字列に変換
+ * @param {number|string|null} direction
+ * @returns {string}
+ */
+function formatDirection(direction) {
+    if (typeof direction === 'number') {
+        return direction > 0 ? `+${direction}°` : `${direction}°`;
+    }
+    if (direction === 'left') return '-60°';
+    if (direction === 'right') return '+60°';
+    if (direction === 'up') return '0°';
+    return '';
+}
+
+/**
  * 矢印型マーカーアイコンを作成
  * @param {number} heading - 方角（度）
  * @returns {L.DivIcon}
@@ -136,7 +151,8 @@ export async function displayPhotoMarkers(onMarkerClick) {
         allPhotos.forEach((photo, index) => {
             if (photo.location && photo.location.lat && photo.location.lng) {
                 const photoIcon = createPhotoIcon();
-                const directionText = photo.direction ? ` - ${photo.direction}` : '';
+                const dirFmt = formatDirection(photo.direction);
+                const directionText = dirFmt ? ` - ${dirFmt}` : '';
                 const marker = L.marker([photo.location.lat, photo.location.lng], {
                     icon: photoIcon,
                     title: `${new Date(photo.timestamp).toLocaleString('ja-JP')}${directionText}`
@@ -227,7 +243,7 @@ export function addPhotoMarkerToMap(photo, onMarkerClick) {
     const photoIcon = createPhotoIcon();
     const marker = L.marker([photo.location.lat, photo.location.lng], {
         icon: photoIcon,
-        title: `${new Date(photo.timestamp).toLocaleString('ja-JP')} - ${photo.direction || ''}`
+        title: `${new Date(photo.timestamp).toLocaleString('ja-JP')}${formatDirection(photo.direction) ? ' - ' + formatDirection(photo.direction) : ''}`
     }).addTo(state.map);
 
     // IDを保持
