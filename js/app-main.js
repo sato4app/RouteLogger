@@ -141,10 +141,13 @@ function setupEventListeners() {
 
     // 方向ダイアル
     let currentDialAngle = 0;
+    let currentFacing = 'forward';
 
     function resetDirectionDial() {
         currentDialAngle = 0;
+        currentFacing = 'forward';
         updateDialUI(0);
+        updateFacingUI('forward');
     }
 
     function updateDialUI(angle) {
@@ -163,13 +166,30 @@ function setupEventListeners() {
         updateDialUI(snapped);
     }
 
+    function updateFacingUI(facing) {
+        document.getElementById('dirFacingForward').classList.toggle('active', facing === 'forward');
+        document.getElementById('dirFacingBackward').classList.toggle('active', facing === 'backward');
+    }
+
+    // Forward/Backward トグル
+    document.getElementById('dirFacingForward').addEventListener('click', () => {
+        currentFacing = 'forward';
+        updateFacingUI('forward');
+        savePhotoWithDirection(currentDialAngle, currentFacing);
+    });
+    document.getElementById('dirFacingBackward').addEventListener('click', () => {
+        currentFacing = 'backward';
+        updateFacingUI('backward');
+        savePhotoWithDirection(currentDialAngle, currentFacing);
+    });
+
     document.getElementById('dirAngleLeft').addEventListener('click', () => {
         setDialAngle(currentDialAngle - 10);
-        savePhotoWithDirection(currentDialAngle);
+        savePhotoWithDirection(currentDialAngle, currentFacing);
     });
     document.getElementById('dirAngleRight').addEventListener('click', () => {
         setDialAngle(currentDialAngle + 10);
-        savePhotoWithDirection(currentDialAngle);
+        savePhotoWithDirection(currentDialAngle, currentFacing);
     });
 
     // ダイアルのタッチ/マウスドラッグ操作
@@ -199,7 +219,7 @@ function setupEventListeners() {
         }, { passive: false });
 
         dialEl.addEventListener('touchend', () => {
-            if (isDragging) savePhotoWithDirection(currentDialAngle);
+            if (isDragging) savePhotoWithDirection(currentDialAngle, currentFacing);
             isDragging = false;
         });
 
@@ -215,7 +235,7 @@ function setupEventListeners() {
         });
 
         document.addEventListener('mouseup', () => {
-            if (isDragging) savePhotoWithDirection(currentDialAngle);
+            if (isDragging) savePhotoWithDirection(currentDialAngle, currentFacing);
             isDragging = false;
         });
     }

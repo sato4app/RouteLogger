@@ -751,6 +751,39 @@ body {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
+.direction-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.facing-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.facing-btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: background 0.15s, color 0.15s;
+    min-width: 80px;
+    text-align: center;
+}
+
+.facing-btn.active {
+    background: #2196F3;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
+}
+
 .direction-dial-wrapper {
     display: flex;
     flex-direction: column;

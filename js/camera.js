@@ -296,8 +296,9 @@ export async function capturePhoto() {
 /**
  * 方向を選択して写真を保存
  * @param {number|string} direction - 角度（度数、正=右）または旧文字列（left/up/right）
+ * @param {string} facing - 'forward' | 'backward'
  */
-export async function savePhotoWithDirection(direction) {
+export async function savePhotoWithDirection(direction, facing = 'forward') {
     if (!state.capturedPhotoData) {
         console.error('撮影データがありません');
         return;
@@ -312,8 +313,9 @@ export async function savePhotoWithDirection(direction) {
 
         const photoRecord = {
             data: stampedPhotoData,
-            timestamp: new Date().toISOString(), // Timestamp updates on overwrite? Prompt says "overwrite direction", implies update.
+            timestamp: new Date().toISOString(),
             direction: direction,
+            facing: facing,
             location: location ? {
                 lat: parseFloat(location.lat.toFixed(5)),
                 lng: parseFloat(location.lng.toFixed(5))

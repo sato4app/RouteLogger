@@ -319,22 +319,28 @@
         <!-- Direction Overlay -->
         <div id="directionButtons" class="camera-controls hidden">
             <div class="direction-hint">Select Direction</div>
-            <div class="direction-dial-wrapper">
-                <div class="direction-dial" id="directionDial">
-                    <svg id="dialSvg" viewBox="0 0 100 100" width="120" height="120">
-                        <circle cx="50" cy="50" r="46" fill="rgba(255,255,255,0.92)" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
-                        <line x1="50" y1="4" x2="50" y2="12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
-                        <g id="dialArrowGroup" transform="rotate(0, 50, 50)">
-                            <polygon points="50,10 45,28 55,28" fill="#2196F3"/>
-                            <rect x="47.5" y="28" width="5" height="18" rx="2" fill="#2196F3"/>
-                        </g>
-                        <circle cx="50" cy="50" r="4" fill="#555"/>
-                    </svg>
+            <div class="direction-controls-row">
+                <div class="facing-buttons">
+                    <button id="dirFacingForward" class="facing-btn active">Forward</button>
+                    <button id="dirFacingBackward" class="facing-btn">Backward</button>
                 </div>
-                <div class="direction-angle-row">
-                    <button id="dirAngleLeft" class="dir-angle-btn">◀</button>
-                    <span id="dirAngleDisplay" class="dir-angle-display">0°</span>
-                    <button id="dirAngleRight" class="dir-angle-btn">▶</button>
+                <div class="direction-dial-wrapper">
+                    <div class="direction-dial" id="directionDial">
+                        <svg id="dialSvg" viewBox="0 0 100 100" width="120" height="120">
+                            <circle cx="50" cy="50" r="46" fill="rgba(255,255,255,0.92)" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
+                            <line x1="50" y1="4" x2="50" y2="12" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+                            <g id="dialArrowGroup" transform="rotate(0, 50, 50)">
+                                <polygon points="50,10 45,28 55,28" fill="#2196F3"/>
+                                <rect x="47.5" y="28" width="5" height="18" rx="2" fill="#2196F3"/>
+                            </g>
+                            <circle cx="50" cy="50" r="4" fill="#555"/>
+                        </svg>
+                    </div>
+                    <div class="direction-angle-row">
+                        <button id="dirAngleLeft" class="dir-angle-btn">◀</button>
+                        <span id="dirAngleDisplay" class="dir-angle-display">0°</span>
+                        <button id="dirAngleRight" class="dir-angle-btn">▶</button>
+                    </div>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 16px;">
