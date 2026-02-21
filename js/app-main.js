@@ -7,7 +7,6 @@ import { startTracking, stopTracking, handleVisibilityChange, handleDeviceOrient
 import { takePhoto, closeCameraDialog, capturePhoto, savePhotoWithDirection, handleTextButton, retakePhoto } from './camera.js';
 import { saveToFirebase, reloadFromFirebase } from './firebase-ops.js';
 import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showDataSize, closeStatsDialog, closeDocumentListDialog, showPhotoFromMarker, initPhotoViewerControls, initClock, initSettings, showSettingsDialog, showDocNameDialog, setUiBusy } from './ui.js';
-import { initLoadDialogControls } from './ui-load.js';
 import { getAllExternalData, getAllTracks, getAllPhotos, clearIndexedDBSilent, clearRouteLogData, restoreTrack, savePhoto } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks, clearMapData } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
@@ -42,20 +41,7 @@ async function initApp() {
     try {
         const allTracks = await getAllTracks();
         if (allTracks && allTracks.length > 0) {
-            // import { displayAllTracks } from './map.js'; が必要だが、
-            // app-main.jsの冒頭でimportを追加する必要がある。
-            // ここでは関数が使えることを前提に記述し、別途importを追加する修正を行うか、
-            // あるいはこのブロック内で動的にimportするか...
-            // いや、replace_file_contentでimport文も同時に修正するのがベスト。
-            // しかしAllowMultiple=trueなら可能。
-
-            // displayAllTracksはmap.jsからエクスポートされている必要がある。
-            // 先ほどの修正で追加した。
             displayAllTracks(allTracks);
-
-            // 最後の位置情報を復元（カメラ移動）
-            // initMapでやっているが、トラック表示後に合わせるならfitBoundsも検討
-            // 今回はinitMapの挙動（現在地または保存されたラスト位置）を優先
         }
     } catch (e) {
         console.error('トラックデータ表示エラー:', e);
@@ -386,11 +372,7 @@ function setupEventListeners() {
     setupDeviceOrientation();
 
     // Photo Viewer Navigation
-    // Photo Viewer Navigation
     initPhotoViewerControls();
-
-    // Load Selection Dialog Controls
-    initLoadDialogControls();
 }
 
 /**
@@ -420,13 +402,9 @@ function returnToMainControl() {
 function setupDeviceOrientation() {
     if (!window.DeviceOrientationEvent) return;
 
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS: Startボタンクリック時に許可を要求
-
-    } else {
-        // Android等
+    if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+        // Android等（iOSはstartTracking()内で許可を要求）
         window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-
     }
 }
 
@@ -435,13 +413,7 @@ function setupDeviceOrientation() {
  */
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-
-            })
-            .catch(error => {
-
-            });
+        navigator.serviceWorker.register('service-worker.js');
     }
 }
 

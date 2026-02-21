@@ -24,11 +24,6 @@ function formatDirection(direction) {
  * @param {number} heading - 方角（度）
  * @returns {L.DivIcon}
  */
-/**
- * 矢印型マーカーアイコンを作成
- * @param {number} heading - 方角（度）
- * @returns {L.DivIcon}
- */
 export function createArrowIcon(heading = 0) {
     return L.divIcon({
         className: 'arrow-marker',
@@ -177,9 +172,6 @@ export async function displayPhotoMarkers(onMarkerClick) {
     }
 }
 
-/**
- * 地図上のマーカーと軌跡をクリア
- */
 /**
  * 地図上のマーカーと軌跡をクリア
  * @param {Object} options - オプション

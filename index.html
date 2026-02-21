@@ -155,9 +155,6 @@
         </button>
     </div>
 
-    <!-- Hidden File Input for GeoJSON import -->
-    <input type="file" id="geoJsonInput" accept=".geojson,.json" class="hidden">
-
     <!-- Dialogs Overlay Container -->
     <div id="overlay" class="hidden"></div>
 
@@ -244,34 +241,6 @@
 
     <!-- Clock Display -->
     <div id="clockDisplay">00:00</div>
-
-    <!-- Load Selection Dialog -->
-    <div id="loadSelectionDialog" class="modal-dialog hidden">
-        <div class="modal-content">
-            <h2>Select Data Type</h2>
-            <div class="list-container">
-                <div class="doc-item" id="loadDbBtn">
-                    <div class="doc-item-title">Past Logs (Database)</div>
-                    <div class="doc-item-meta">Load recorded tracks/photos from Cloud</div>
-                </div>
-                <div class="doc-item" id="loadDbKmzBtn" style="opacity: 0.5;">
-                    <div class="doc-item-title">Past Logs (KMZ File)</div>
-                    <div class="doc-item-meta">Import KMZ file into tracks (Not implemented)</div>
-                </div>
-                <div class="doc-item" id="loadExtGeoJsonBtn">
-                    <div class="doc-item-title">External Data (GeoJSON File)</div>
-                    <div class="doc-item-meta">View external GeoJSON data as overlay</div>
-                </div>
-                <div class="doc-item" id="loadExtKmzBtn" style="opacity: 0.5;">
-                    <div class="doc-item-title">External Data (KMZ File)</div>
-                    <div class="doc-item-meta">View external KMZ data (Not implemented)</div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button id="closeLoadSelectionBtn" class="secondary-btn" style="width: 100%;">Cancel</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Settings Dialog -->
     <div id="settingsDialog" class="modal-dialog hidden">

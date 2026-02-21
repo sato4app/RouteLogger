@@ -258,9 +258,6 @@ export async function capturePhoto() {
     captureButtons.classList.add('hidden');
     directionButtons.classList.remove('hidden');
 
-    // 方向ボタンの選択状態をリセット
-    document.querySelectorAll('.dir-btn').forEach(btn => btn.classList.remove('selected'));
-
     // 即時保存 (IndexedDB)
     try {
         const photoRecord = {

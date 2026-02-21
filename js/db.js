@@ -402,55 +402,6 @@ export async function clearIndexedDBSilent() {
 }
 
 /**
- * IndexedDBを初期化（Clear機能）
- */
-export async function clearIndexedDB() {
-    if (!confirm('IndexedDBを初期化しますか？\n保存されているすべてのデータが削除されます。')) {
-        return;
-    }
-
-    try {
-        const lastPosition = await getLastPosition();
-
-        if (state.db) {
-            state.db.close();
-            state.setDb(null);
-        }
-
-        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
-
-        deleteRequest.onsuccess = async () => {
-
-            await initIndexedDB();
-
-            if (lastPosition) {
-                await saveLastPosition(lastPosition.lat, lastPosition.lng, lastPosition.zoom);
-            } else {
-                await saveLastPosition(DEFAULT_POSITION.lat, DEFAULT_POSITION.lng, DEFAULT_POSITION.zoom);
-            }
-
-            state.setTrackingStartTime(null);
-            state.resetTrackingData();
-
-            alert('IndexedDBを初期化しました');
-        };
-
-        deleteRequest.onerror = () => {
-            console.error('IndexedDB削除エラー:', deleteRequest.error);
-            alert('IndexedDBの削除に失敗しました');
-        };
-
-        deleteRequest.onblocked = () => {
-            console.warn('IndexedDB削除がブロックされました');
-            alert('データベースが使用中です。他のタブを閉じてから再度お試しください。');
-        };
-    } catch (error) {
-        console.error('IndexedDB初期化エラー:', error);
-        alert('IndexedDBの初期化に失敗しました: ' + error.message);
-    }
-}
-
-/**
  * 外部データを保存
  * @param {string} type - データタイプ ('geojson'など)
  * @param {string} name - ファイル名
