@@ -261,7 +261,7 @@ function setupEventListeners() {
                     fileInput = document.createElement('input');
                     fileInput.type = 'file';
                     fileInput.id = 'kmzFileInput';
-                    fileInput.accept = '.kmz,.kml,.geojson,.json';
+                    fileInput.accept = '.kmz,.kml,.geojson,.json,.zip';
                     fileInput.style.display = 'none';
                     document.body.appendChild(fileInput);
 
@@ -273,7 +273,7 @@ function setupEventListeners() {
                                 const { importKmz, importGeoJson } = await import('./kmz-handler.js');
                                 let result;
 
-                                if (file.name.endsWith('.kmz') || file.name.endsWith('.kml')) {
+                                if (file.name.endsWith('.kmz') || file.name.endsWith('.kml') || file.name.endsWith('.kmz.zip') || file.name.endsWith('.zip')) {
                                     result = await importKmz(file);
                                 } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
                                     result = await importGeoJson(file);

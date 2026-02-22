@@ -297,6 +297,7 @@ async function uploadPhotosToStorage(storage, projectName, photos) {
                     storagePath: photoPath,
                     timestamp: photo.timestamp,
                     direction: photo.direction || null,
+                    facing: photo.facing || null,
                     location: formatPositionData(photo.location),
                     text: photo.text || null
                 });
@@ -399,6 +400,7 @@ async function restorePhotos(photosData, db) {
                 data: base64,
                 timestamp: photoData.timestamp,
                 direction: photoData.direction || null,
+                facing: photoData.facing || null,
                 location: photoData.location,
                 text: photoData.text || null
             };

@@ -52,6 +52,11 @@ export function showSettingsDialog() {
         useFirebaseToggle.checked = state.isFirebaseEnabled;
     }
 
+    const showFacingToggle = document.getElementById('showFacingToggle');
+    if (showFacingToggle) {
+        showFacingToggle.checked = state.isShowFacingButtons;
+    }
+
     toggleVisibility('settingsDialog', true);
 }
 
@@ -102,5 +107,18 @@ export function initSettings() {
     const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
     if (savedFirebaseSetting !== null) {
         state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
+    }
+
+    // Show Facing Buttons Toggle
+    const showFacingToggle = document.getElementById('showFacingToggle');
+    if (showFacingToggle) {
+        showFacingToggle.addEventListener('change', (e) => {
+            state.setIsShowFacingButtons(e.target.checked);
+            localStorage.setItem('routeLogger_showFacingButtons', e.target.checked);
+        });
+    }
+    const savedFacingSetting = localStorage.getItem('routeLogger_showFacingButtons');
+    if (savedFacingSetting !== null) {
+        state.setIsShowFacingButtons(savedFacingSetting === 'true');
     }
 }

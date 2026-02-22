@@ -37,7 +37,7 @@ export async function exportToKmz(tracks, photos, filename) {
 
   // Zipを生成してダウンロード
   try {
-    const content = await zip.generateAsync({ type: "blob" });
+    const content = await zip.generateAsync({ type: "blob", mimeType: "application/vnd.google-earth.kmz" });
 
     let downloadName;
     if (filename) {

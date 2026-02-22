@@ -258,6 +258,10 @@ export async function capturePhoto() {
     captureButtons.classList.add('hidden');
     directionButtons.classList.remove('hidden');
 
+    // Facing Buttons の表示/非表示を設定に従って切り替え
+    const facingButtonsEl = document.querySelector('.facing-buttons');
+    if (facingButtonsEl) facingButtonsEl.classList.toggle('hidden', !state.isShowFacingButtons);
+
     // 即時保存 (IndexedDB)
     try {
         const photoRecord = {
