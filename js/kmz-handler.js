@@ -45,7 +45,7 @@ export async function exportToKmz(tracks, photos, filename) {
       downloadName = filename.endsWith('.kmz') ? filename : `${filename}.kmz`;
     } else {
       const dateStr = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
-      downloadName = `RL-${dateStr}.kmz`;
+      downloadName = `RLog-${dateStr}.kmz`;
     }
 
     saveAs(content, downloadName);

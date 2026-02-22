@@ -324,7 +324,7 @@ function setupEventListeners() {
     if (dataSaveBtn) {
         dataSaveBtn.addEventListener('click', async () => {
             const jstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
-            const defaultName = `RLog_${jstDate.toISOString().slice(0, 10).replace(/-/g, '')}`;
+            const defaultName = `RLog-${jstDate.toISOString().slice(0, 10).replace(/-/g, '')}`;
             if (state.isFirebaseEnabled) {
                 const authed = await ensureFirebaseAuth();
                 if (!authed) return;
