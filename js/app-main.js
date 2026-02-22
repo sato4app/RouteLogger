@@ -261,7 +261,7 @@ function setupEventListeners() {
                     fileInput = document.createElement('input');
                     fileInput.type = 'file';
                     fileInput.id = 'kmzFileInput';
-                    fileInput.accept = '.kmz,.kml,.geojson,.json,.zip';
+                    fileInput.accept = '.kmz,.kml,.geojson,.json,.zip,application/vnd.google-earth.kmz,application/vnd.google-earth.kml+xml,application/zip,application/json,application/geo+json';
                     fileInput.style.display = 'none';
                     document.body.appendChild(fileInput);
 
