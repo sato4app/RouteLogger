@@ -885,8 +885,8 @@ body {
 #clockDisplay {
     position: absolute;
     top: auto;
-    bottom: 154px;
-    /* Aligned slightly above buttons */
+    bottom: calc(env(safe-area-inset-bottom, 30px) + 154px);
+    /* clearBtn上に配置: safe-area分だけclearBtnと同じだけシフト */
     left: 50%;
     transform: translateX(-50%);
     margin-left: -136px;
