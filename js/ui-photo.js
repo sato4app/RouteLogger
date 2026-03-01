@@ -269,6 +269,22 @@ export function initPhotoViewerControls() {
     const textCancelBtn = document.getElementById('viewerTextCancelBtn');
 
     if (editTextBtn && textEditor && textArea) {
+        const doSave = async () => {
+            const photo = currentPhotoList[currentPhotoIndex];
+            if (!photo) return;
+            textArea.blur(); // キーボードを閉じる
+            const trimmed = textArea.value.trim();
+            photo.text = trimmed || null;
+            await updatePhoto(photo);
+            textEditor.classList.add('hidden');
+            updatePhotoViewerUI(photo, currentPhotoIndex, currentPhotoList.length);
+        };
+
+        const doCancel = () => {
+            textArea.blur(); // キーボードを閉じる
+            textEditor.classList.add('hidden');
+        };
+
         editTextBtn.onclick = () => {
             const photo = currentPhotoList[currentPhotoIndex];
             if (!photo) return;
@@ -277,19 +293,27 @@ export function initPhotoViewerControls() {
             textArea.focus();
         };
 
-        textSaveBtn.onclick = async () => {
-            const photo = currentPhotoList[currentPhotoIndex];
-            if (!photo) return;
-            const trimmed = textArea.value.trim();
-            photo.text = trimmed || null;
-            await updatePhoto(photo);
-            textEditor.classList.add('hidden');
-            updatePhotoViewerUI(photo, currentPhotoIndex, currentPhotoList.length);
-        };
+        // ボタンは pointerdown で処理（モバイルで blur より先に発火させるため preventDefault）
+        textSaveBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            doSave();
+        });
 
-        textCancelBtn.onclick = () => {
-            textEditor.classList.add('hidden');
-        };
+        textCancelBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            doCancel();
+        });
+
+        // キーボードショートカット: Ctrl/Cmd+Enter で保存、Escape でキャンセル
+        textArea.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                doCancel();
+            } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                doSave();
+            }
+        });
     }
 
     // Delete ボタン
