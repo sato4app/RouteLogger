@@ -9,6 +9,27 @@ let currentPhotoList = [];
 let currentPhotoIndex = -1;
 let currentDisplayedPhoto = null;
 let zoomController = null;
+let _kbWatchHandler = null;
+
+/** キーボード表示時にビューアーを可視領域に収める */
+function _startKbWatch() {
+    if (!window.visualViewport) return;
+    const viewer = document.getElementById('photoViewer');
+    const content = viewer?.querySelector('.viewer-content');
+    _kbWatchHandler = () => {
+        if (viewer) viewer.style.height = window.visualViewport.height + 'px';
+        if (content) setTimeout(() => { content.scrollTop = content.scrollHeight; }, 50);
+    };
+    window.visualViewport.addEventListener('resize', _kbWatchHandler);
+}
+
+function _stopKbWatch() {
+    if (!window.visualViewport || !_kbWatchHandler) return;
+    window.visualViewport.removeEventListener('resize', _kbWatchHandler);
+    _kbWatchHandler = null;
+    const viewer = document.getElementById('photoViewer');
+    if (viewer) viewer.style.height = '';
+}
 
 /**
  * マーカークリックから写真を表示
@@ -182,6 +203,7 @@ function updatePhotoViewerUI(photo, index, total) {
     // テキスト編集エリアを閉じる（写真切り替え時）
     const textEditor = document.getElementById('viewerTextEditor');
     if (textEditor) textEditor.classList.add('hidden');
+    _stopKbWatch();
 
     // Reset zoom when photo changes
     if (zoomController) {
@@ -276,6 +298,7 @@ export function initPhotoViewerControls() {
             const photo = currentDisplayedPhoto;
             if (!photo) return;
             textArea.blur(); // キーボードを閉じる
+            _stopKbWatch();
             const trimmed = textArea.value.trim();
             photo.text = trimmed || null;
             // currentPhotoList内の同一オブジェクトにも反映
@@ -289,6 +312,7 @@ export function initPhotoViewerControls() {
 
         const doCancel = () => {
             textArea.blur(); // キーボードを閉じる
+            _stopKbWatch();
             textEditor.classList.add('hidden');
         };
 
@@ -297,7 +321,12 @@ export function initPhotoViewerControls() {
             if (!photo) return;
             textArea.value = photo.text || '';
             textEditor.classList.remove('hidden');
+            _startKbWatch();
             textArea.focus();
+            // キーボードが開いた後にtextareaをスクロールして表示
+            setTimeout(() => {
+                textArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 400);
         };
 
         // ボタンは pointerdown で処理（モバイルで blur より先に発火させるため preventDefault）
