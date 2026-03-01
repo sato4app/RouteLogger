@@ -7,6 +7,7 @@ import { toggleVisibility, updateStatus } from './ui-common.js';
 
 let currentPhotoList = [];
 let currentPhotoIndex = -1;
+let currentDisplayedPhoto = null;
 let zoomController = null;
 
 /**
@@ -128,6 +129,8 @@ export function showPhotoViewer(photo, allPhotos = [], index = -1) {
  * @param {number} total 
  */
 function updatePhotoViewerUI(photo, index, total) {
+    currentDisplayedPhoto = photo;
+
     const viewerImage = document.getElementById('viewerImage');
     const photoInfo = document.getElementById('photoInfo');
     const counter = document.getElementById('photoCounter');
@@ -270,11 +273,15 @@ export function initPhotoViewerControls() {
 
     if (editTextBtn && textEditor && textArea) {
         const doSave = async () => {
-            const photo = currentPhotoList[currentPhotoIndex];
+            const photo = currentDisplayedPhoto;
             if (!photo) return;
             textArea.blur(); // キーボードを閉じる
             const trimmed = textArea.value.trim();
             photo.text = trimmed || null;
+            // currentPhotoList内の同一オブジェクトにも反映
+            if (currentPhotoIndex >= 0 && currentPhotoList[currentPhotoIndex]) {
+                currentPhotoList[currentPhotoIndex].text = photo.text;
+            }
             await updatePhoto(photo);
             textEditor.classList.add('hidden');
             updatePhotoViewerUI(photo, currentPhotoIndex, currentPhotoList.length);
@@ -286,7 +293,7 @@ export function initPhotoViewerControls() {
         };
 
         editTextBtn.onclick = () => {
-            const photo = currentPhotoList[currentPhotoIndex];
+            const photo = currentDisplayedPhoto;
             if (!photo) return;
             textArea.value = photo.text || '';
             textEditor.classList.remove('hidden');
