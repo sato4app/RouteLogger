@@ -634,12 +634,76 @@ body {
     border-color: white;
 }
 
+.viewer-btn-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.viewer-edit-text-btn {
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(100, 180, 255, 0.6);
+    background: transparent;
+    color: rgba(100, 180, 255, 0.9);
+    font-size: 12px;
+    cursor: pointer;
+}
+
 .viewer-delete-btn {
     padding: 6px 12px;
     border-radius: 16px;
     border: 1px solid rgba(255, 80, 80, 0.6);
     background: transparent;
     color: rgba(255, 100, 100, 0.9);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.viewer-text-editor {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.viewer-text-editor textarea {
+    width: 100%;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    padding: 8px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.viewer-text-editor-btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.viewer-text-save-btn {
+    padding: 6px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(100, 255, 150, 0.6);
+    background: transparent;
+    color: rgba(100, 255, 150, 0.9);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.viewer-text-cancel-btn {
+    padding: 6px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 12px;
     cursor: pointer;
 }

@@ -155,8 +155,8 @@ function updatePhotoViewerUI(photo, index, total) {
     const fwdBtn = document.getElementById('viewerFacingForward');
     const bwdBtn = document.getElementById('viewerFacingBackward');
     if (fwdBtn && bwdBtn) {
-        fwdBtn.classList.toggle('active', photo.facing === 'forward');
-        bwdBtn.classList.toggle('active', photo.facing === 'backward');
+        fwdBtn.classList.toggle('active', photo.facing === 'forward' || photo.facing === 'forward/backward');
+        bwdBtn.classList.toggle('active', photo.facing === 'backward' || photo.facing === 'forward/backward');
     }
 
     // Update counter
@@ -175,6 +175,10 @@ function updatePhotoViewerUI(photo, index, total) {
         if (prevBtn) prevBtn.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'none';
     }
+
+    // テキスト編集エリアを閉じる（写真切り替え時）
+    const textEditor = document.getElementById('viewerTextEditor');
+    if (textEditor) textEditor.classList.add('hidden');
 
     // Reset zoom when photo changes
     if (zoomController) {
@@ -223,28 +227,68 @@ export function initPhotoViewerControls() {
         };
     }
 
-    // Facing トグルボタン
+    // Facing 独立on/offボタン
     const fwdBtn = document.getElementById('viewerFacingForward');
     const bwdBtn = document.getElementById('viewerFacingBackward');
+
+    function computeFacing(isFwd, isBwd) {
+        if (isFwd && isBwd) return 'forward/backward';
+        if (isFwd) return 'forward';
+        if (isBwd) return 'backward';
+        return null;
+    }
 
     if (fwdBtn) {
         fwdBtn.onclick = async () => {
             const photo = currentPhotoList[currentPhotoIndex];
             if (!photo) return;
-            photo.facing = 'forward';
+            const isFwd = !fwdBtn.classList.contains('active');
+            const isBwd = bwdBtn.classList.contains('active');
+            photo.facing = computeFacing(isFwd, isBwd);
             await updatePhoto(photo);
-            fwdBtn.classList.add('active');
-            bwdBtn.classList.remove('active');
+            fwdBtn.classList.toggle('active', isFwd);
         };
     }
     if (bwdBtn) {
         bwdBtn.onclick = async () => {
             const photo = currentPhotoList[currentPhotoIndex];
             if (!photo) return;
-            photo.facing = 'backward';
+            const isFwd = fwdBtn.classList.contains('active');
+            const isBwd = !bwdBtn.classList.contains('active');
+            photo.facing = computeFacing(isFwd, isBwd);
             await updatePhoto(photo);
-            bwdBtn.classList.add('active');
-            fwdBtn.classList.remove('active');
+            bwdBtn.classList.toggle('active', isBwd);
+        };
+    }
+
+    // Edit Text ボタン
+    const editTextBtn = document.getElementById('viewerEditTextBtn');
+    const textEditor = document.getElementById('viewerTextEditor');
+    const textArea = document.getElementById('viewerTextArea');
+    const textSaveBtn = document.getElementById('viewerTextSaveBtn');
+    const textCancelBtn = document.getElementById('viewerTextCancelBtn');
+
+    if (editTextBtn && textEditor && textArea) {
+        editTextBtn.onclick = () => {
+            const photo = currentPhotoList[currentPhotoIndex];
+            if (!photo) return;
+            textArea.value = photo.text || '';
+            textEditor.classList.remove('hidden');
+            textArea.focus();
+        };
+
+        textSaveBtn.onclick = async () => {
+            const photo = currentPhotoList[currentPhotoIndex];
+            if (!photo) return;
+            const trimmed = textArea.value.trim();
+            photo.text = trimmed || null;
+            await updatePhoto(photo);
+            textEditor.classList.add('hidden');
+            updatePhotoViewerUI(photo, currentPhotoIndex, currentPhotoList.length);
+        };
+
+        textCancelBtn.onclick = () => {
+            textEditor.classList.add('hidden');
         };
     }
 

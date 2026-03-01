@@ -127,13 +127,22 @@ function setupEventListeners() {
 
     // 方向ダイアル
     let currentDialAngle = 0;
-    let currentFacing = 'forward';
+    let currentFacingForward = true;   // デフォルト: Forward on
+    let currentFacingBackward = false; // デフォルト: Backward off
+
+    function computeFacing(isFwd, isBwd) {
+        if (isFwd && isBwd) return 'forward/backward';
+        if (isFwd) return 'forward';
+        if (isBwd) return 'backward';
+        return null;
+    }
 
     function resetDirectionDial() {
         currentDialAngle = 0;
-        currentFacing = 'forward';
+        currentFacingForward = true;
+        currentFacingBackward = false;
         updateDialUI(0);
-        updateFacingUI('forward');
+        updateFacingUI(true, false);
     }
 
     function updateDialUI(angle) {
@@ -152,30 +161,30 @@ function setupEventListeners() {
         updateDialUI(snapped);
     }
 
-    function updateFacingUI(facing) {
-        document.getElementById('dirFacingForward').classList.toggle('active', facing === 'forward');
-        document.getElementById('dirFacingBackward').classList.toggle('active', facing === 'backward');
+    function updateFacingUI(isFwd, isBwd) {
+        document.getElementById('dirFacingForward').classList.toggle('active', isFwd);
+        document.getElementById('dirFacingBackward').classList.toggle('active', isBwd);
     }
 
-    // Forward/Backward トグル
+    // Forward/Backward 独立on/off
     document.getElementById('dirFacingForward').addEventListener('click', () => {
-        currentFacing = 'forward';
-        updateFacingUI('forward');
-        savePhotoWithDirection(currentDialAngle, currentFacing);
+        currentFacingForward = !currentFacingForward;
+        updateFacingUI(currentFacingForward, currentFacingBackward);
+        savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
     });
     document.getElementById('dirFacingBackward').addEventListener('click', () => {
-        currentFacing = 'backward';
-        updateFacingUI('backward');
-        savePhotoWithDirection(currentDialAngle, currentFacing);
+        currentFacingBackward = !currentFacingBackward;
+        updateFacingUI(currentFacingForward, currentFacingBackward);
+        savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
     });
 
     document.getElementById('dirAngleLeft').addEventListener('click', () => {
         setDialAngle(currentDialAngle - 10);
-        savePhotoWithDirection(currentDialAngle, currentFacing);
+        savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
     });
     document.getElementById('dirAngleRight').addEventListener('click', () => {
         setDialAngle(currentDialAngle + 10);
-        savePhotoWithDirection(currentDialAngle, currentFacing);
+        savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
     });
 
     // ダイアルのタッチ/マウスドラッグ操作
@@ -205,7 +214,7 @@ function setupEventListeners() {
         }, { passive: false });
 
         dialEl.addEventListener('touchend', () => {
-            if (isDragging) savePhotoWithDirection(currentDialAngle, currentFacing);
+            if (isDragging) savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
             isDragging = false;
         });
 
@@ -221,7 +230,7 @@ function setupEventListeners() {
         });
 
         document.addEventListener('mouseup', () => {
-            if (isDragging) savePhotoWithDirection(currentDialAngle, currentFacing);
+            if (isDragging) savePhotoWithDirection(currentDialAngle, computeFacing(currentFacingForward, currentFacingBackward));
             isDragging = false;
         });
     }

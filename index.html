@@ -190,7 +190,17 @@
                         <button id="viewerFacingForward" class="viewer-facing-btn">Forward</button>
                         <button id="viewerFacingBackward" class="viewer-facing-btn">Backward</button>
                     </div>
-                    <button id="viewerDeleteBtn" class="viewer-delete-btn">Delete</button>
+                    <div class="viewer-btn-row">
+                        <button id="viewerEditTextBtn" class="viewer-edit-text-btn">Edit Text</button>
+                        <button id="viewerDeleteBtn" class="viewer-delete-btn">Delete</button>
+                    </div>
+                </div>
+            </div>
+            <div id="viewerTextEditor" class="viewer-text-editor hidden">
+                <textarea id="viewerTextArea" placeholder="テキストを入力..."></textarea>
+                <div class="viewer-text-editor-btns">
+                    <button id="viewerTextSaveBtn" class="viewer-text-save-btn">Save</button>
+                    <button id="viewerTextCancelBtn" class="viewer-text-cancel-btn">Cancel</button>
                 </div>
             </div>
         </div>
