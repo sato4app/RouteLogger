@@ -17,22 +17,29 @@ function _startKbWatch() {
     const viewer = document.getElementById('photoViewer');
     const content = viewer?.querySelector('.viewer-content');
     _kbWatchHandler = () => {
-        if (viewer) viewer.style.height = window.visualViewport.height + 'px';
-        const textEditor = document.getElementById('viewerTextEditor');
-        if (textEditor && !textEditor.classList.contains('hidden')) {
+        if (viewer) {
+            viewer.style.height = window.visualViewport.height + 'px';
+        }
+        if (content) {
+            // iOS等で画面全体がスクロールしてしまうのを防ぐ
+            if (window.scrollY > 0) {
+                window.scrollTo(0, 0);
+            }
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    textEditor.scrollIntoView({ behavior: 'auto', block: 'center' });
+                    content.scrollTop = content.scrollHeight;
                 });
             });
         }
     };
     window.visualViewport.addEventListener('resize', _kbWatchHandler);
+    window.addEventListener('scroll', _kbWatchHandler); // scrollイベントでも監視して画面全体が上がるのを防ぐ
 }
 
 function _stopKbWatch() {
     if (!window.visualViewport || !_kbWatchHandler) return;
     window.visualViewport.removeEventListener('resize', _kbWatchHandler);
+    window.removeEventListener('scroll', _kbWatchHandler);
     _kbWatchHandler = null;
     const viewer = document.getElementById('photoViewer');
     if (viewer) viewer.style.height = '';
@@ -332,10 +339,10 @@ export function initPhotoViewerControls() {
             textEditor.classList.remove('hidden');
             document.getElementById('photoViewer').classList.add('editing');
             _startKbWatch();
-            // レイアウト確定後すぐにtextareaへスクロール（キーボード表示前にも対応）
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    textEditor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const content = document.querySelector('#photoViewer .viewer-content');
+                    if (content) content.scrollTop = content.scrollHeight;
                 });
             });
             textArea.focus();
