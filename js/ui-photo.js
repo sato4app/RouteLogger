@@ -238,6 +238,11 @@ export function closePhotoViewer() {
     if (zoomController) {
         zoomController.reset();
     }
+    // 写真一覧が表示中なら更新（ビューアーでの削除を反映）
+    const photoListContainer = document.getElementById('photoListContainer');
+    if (photoListContainer && !photoListContainer.classList.contains('hidden')) {
+        showPhotoList();
+    }
 }
 
 /**
