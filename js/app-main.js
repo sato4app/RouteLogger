@@ -110,6 +110,7 @@ function setupEventListeners() {
             }
             updateStatus('データを初期化しました');
         }
+        returnToMainControl();
     });
     document.getElementById('startBtn').addEventListener('click', startTracking);
     document.getElementById('stopBtn').addEventListener('click', stopTracking);
