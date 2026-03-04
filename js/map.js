@@ -419,18 +419,16 @@ export function displayExternalGeoJSON(geoJson) {
  * @param {Array} tracks - トラックデータの配列
  */
 export function displayAllTracks(tracks) {
-    if (!state.map || !tracks) return;
+    if (!state.map || !tracks || !state.trackingPath) return;
 
+    const allPoints = [];
     tracks.forEach(track => {
         if (track.points && track.points.length > 0) {
-            const latlngs = track.points.map(p => [p.lat, p.lng]);
-            const polyline = L.polyline(latlngs, {
-                color: '#000080',
-                weight: 5,
-                opacity: 1.0 // 写真マーカーと同程度の濃さにする
-            }).addTo(state.map);
-
-            state.addExternalLayer(polyline);
+            track.points.forEach(p => allPoints.push([p.lat, p.lng]));
         }
     });
+
+    if (allPoints.length > 0) {
+        state.trackingPath.setLatLngs(allPoints);
+    }
 }
