@@ -1,7 +1,7 @@
 # RouteLogger 機能仕様書
 
-**バージョン:** 202602
-**最終更新日:** 2026年2月28日
+**バージョン:** 202603
+**最終更新日:** 2026年3月7日
 
 ---
 
@@ -48,7 +48,7 @@ RouteLogger - GPS位置記録
 | カメラダイアログ | 写真撮影UI（方向ダイアル・facing選択） |
 | 記録統計ダイアログ | データサイズ・記録統計の表示 |
 | ドキュメント選択ダイアログ | Firebase保存データの読み込み選択 |
-| ドキュメント名入力ダイアログ | 保存時のファイル/ドキュメント名入力 |
+| ドキュメント名入力ダイアログ | 保存時のファイル/ドキュメント名入力（タイトルが保存先に応じて変わる） |
 | データ初期化確認ダイアログ | Start時の既存データ確認 |
 | 設定ダイアログ | アプリ設定（時計・Firebase・方向ボタン） |
 
@@ -105,11 +105,11 @@ RouteLogger - GPS位置記録
 - **状態:** GPS追跡中のみ有効
 - **動作:**
   1. カメラダイアログを表示
-  2. 背面カメラでプレビュー表示（720x1280pxを希望）
-  3. シャッターボタンで撮影
+  2. 背面カメラでプレビュー表示（width:ideal 1920, height:ideal 1080）
+  3. シャッターボタンで撮影（PHOTO_WIDTH×PHOTO_HEIGHTにクロップ・リサイズして保存）
   4. プレビュー確認画面を表示
       - **Retake**ボタン: 再撮影（カメラ画面に戻る、現在の編集状態をリセット）
-      - **Text**ボタン: テキストメモを入力（保存済み写真の場合は即座に更新）
+      - **Text**ボタン: テキストメモを入力（**テキストが入力済みの場合はボタンが青色に変わる**）（保存済み写真の場合は即座に更新）
       - **方向ダイアル**: ドラッグまたは±ボタンで撮影角度を10°単位で設定（-180°〜+180°）
       - **Forward/Backward**: 進行方向前方向 / 後方向を選択（設定でボタン非表示可能）
       - 閉じるボタン: カメラモードを終了
@@ -127,7 +127,7 @@ RouteLogger - GPS位置記録
 - **操作方法:**
   - ドラッグ（タッチ/マウス）: ダイアル中心を基準に指の角度を検出
   - ±ボタン: 10°単位で増減
-- **facing設定:** Forward（前向き）/ Backward（後ろ向き）をトグルで選択
+- **facing設定:** Forward（前向き）/ Backward（後ろ向き）をトグルで選択（排他的）
   - 設定「Show Facing Buttons」がOFFの場合はForward/Backwardボタンを非表示
 
 #### 3.2.3 写真データ形式
@@ -147,6 +147,11 @@ RouteLogger - GPS位置記録
 ```
 
 > **後方互換:** 旧バージョンで保存した `direction: "left" | "up" | "right"` 形式も読み込み可能（表示時に変換）
+
+#### 3.2.4 写真マーカータップ時の表示
+- 地図上の写真マーカーをタップすると写真拡大ビューアが開く
+- **必ずIndexedDBから最新データを取得して表示する**（マーカー作成時のphotoオブジェクトは古い可能性があるため）
+- これにより、マーカー作成後に方向（facing）を変更した場合も最新の状態が反映される
 
 ### 3.3 データ管理機能
 
@@ -169,17 +174,21 @@ RouteLogger - GPS位置記録
 **Firebase ONの場合（クラウド保存）:**
 - **前提条件:** GPS追跡を開始した後のみ有効
 - **動作:**
-  1. ドキュメント名入力ダイアログ（デフォルト: `RLog-YYYYMMDD` JST日付）
+  1. ドキュメント名入力ダイアログを表示（タイトル: **"Save to cloud as..."**）
+     - デフォルト名: `RLog-YYYYMMDD` JST日付
   2. 同名ドキュメントが存在する場合は自動で連番付与（例: `name_2`）
-  3. 写真をFirebase Storageにアップロード
-  4. プロジェクトデータをFirestoreに保存
-  5. Save/Load中はWake Lockを取得（画面スリープを防止）
+  3. 保存開始前にステータスに `Save to cloud as "{name}"...` を表示
+  4. 写真をFirebase Storageにアップロード
+  5. プロジェクトデータをFirestoreに保存
+  6. Save/Load中はWake Lockを取得（画面スリープを防止）
 
 **Firebase OFFの場合（KMZファイル保存）:**
 - **前提条件:** なし（GPS追跡なしでも保存可能）
 - **動作:**
-  1. ファイル名入力ダイアログ（デフォルト: `RLog-YYYYMMDD`）
-  2. KMZファイルを生成してダウンロード
+  1. ファイル名入力ダイアログを表示（タイトル: **"Save to file as..."**）
+     - デフォルト名: `RLog-YYYYMMDD` JST日付
+  2. 保存開始前にステータスに `Save to file as "{name}.kmz"...` を表示
+  3. KMZファイルを生成してダウンロード
      - `doc.kml`: GPSトラック（LineString）と写真位置（Point）のKML
      - `images/photo_{id}.jpg`: 写真ファイル（Base64→Binary変換）
      - MIMEタイプ: `application/vnd.google-earth.kmz`
@@ -277,6 +286,13 @@ RouteLogger - GPS位置記録
 
 - ページが再表示された時に追跡中のWake Lockを自動再取得
 - 非対応ブラウザでは警告をコンソール出力
+
+### 3.10 iOS Shake to Undo防止
+
+iOS端末では、テキスト入力にフォーカスがある状態でデバイスを振ると「元に戻す」ダイアログが表示される場合がある。これを防ぐため以下の対策を実施：
+
+- **ページ非表示時（`visibilitychange` → `hidden`）:** `document.activeElement.blur()` を呼び出し、フォーカスを強制解除する
+- **ドキュメント名入力ダイアログ閉鎖時:** `cleanup()` 内で `input.blur()` を呼び出し、ダイアログ閉鎖後もフォーカスが残らないようにする
 
 ---
 
@@ -445,7 +461,13 @@ tracks/
 | 状態 | 表示要素 |
 |------|----------|
 | 撮影前 | カメラプレビュー、シャッターボタン（白丸）、閉じるボタン |
-| 撮影後 | 撮影画像、方向ダイアル（SVG）、±ボタン、角度表示、Forward/Backwardボタン（設定次第）、Textボタン、Retakeボタン、閉じるボタン |
+| 撮影後 | 撮影画像、方向ダイアル（SVG）、±ボタン、角度表示、Forward/Backwardボタン（設定次第）、Textボタン（テキスト入力済みの場合は青色）、Retakeボタン、閉じるボタン |
+
+### 6.5 ドキュメント名入力ダイアログ
+| 保存先 | ダイアログタイトル |
+|--------|----------------|
+| Firebase（クラウド） | Save to cloud as... |
+| KMZファイル | Save to file as... |
 
 ---
 
@@ -541,8 +563,8 @@ RouteLogger/
 │   ├── icon-192.png
 │   └── icon-512.png
 └── docs/
-    ├── funcspec-202602.md    # 機能仕様書（本書）
-    ├── UsersGuide-202602.md  # 利用者の手引
+    ├── funcspec-202603.md    # 機能仕様書（本書）
+    ├── UsersGuide-202603.md  # 利用者の手引
     └── FIREBASE_SETUP.md     # Firebase設定ガイド
 ```
 
@@ -555,14 +577,14 @@ RouteLogger/
 | utils.js | 汎用関数 | formatDateTime, calculateDistance 等 |
 | db.js | DB操作 | initIndexedDB, saveTrack, getAllPhotos 等 |
 | map.js | 地図機能 | initMap, updateCurrentMarker, displayExternalGeoJSON 等 |
-| tracking.js | GPS追跡 | startTracking, stopTracking 等 |
-| camera.js | カメラ | takePhoto, capturePhoto, drawArrowStamp 等 |
+| tracking.js | GPS追跡 | startTracking, stopTracking, handleVisibilityChange 等 |
+| camera.js | カメラ | takePhoto, capturePhoto, drawArrowStamp, updateTextBtnState 等 |
 | firebase-ops.js | Firebase | saveToFirebase, reloadFromFirebase 等 |
 | kmz-handler.js | KMZ/GeoJSON | exportToKmz, importKmz, importGeoJson 等 |
 | ui.js | UI統合 | (各UIモジュールのre-export) |
 | ui-common.js | 共通UI | updateStatus, setUiBusy, toggleVisibility 等 |
-| ui-photo.js | 写真UI | showPhotoList, showPhotoViewer 等 |
-| ui-dialog.js | ダイアログ | showDataSize, showDocumentListDialog 等 |
+| ui-photo.js | 写真UI | showPhotoList, showPhotoViewer, showPhotoFromMarker 等 |
+| ui-dialog.js | ダイアログ | showDocNameDialog(defaultName, title), showDataSize 等 |
 | ui-settings.js | 設定・時計 | initClock, initSettings, showSettingsDialog 等 |
 | app-main.js | 初期化 | initApp, setupEventListeners 等 |
 
@@ -578,3 +600,4 @@ RouteLogger/
 | 2026-02-01 | 202601 | 写真撮影フロー改善（上書き保存・保存後画面維持） |
 | 2026-02-02 | 202602 | アプリ名をRouteLoggerに変更、IndexedDB名更新 |
 | 2026-02-28 | 202602 | 写真方向をダイアル式に変更（角度数値+facing）、KMZ export/import機能追加、外部レイヤー表示機能追加、設定パネル追加（Firebase切替・時計・facingボタン）、Clearボタン追加、Wake Lock対象をSave/Loadにも拡張、IndexedDB v4（externals/external_photosストア追加）、FirestoreパスをtracksコレクションへIに変更 |
+| 2026-03-07 | 202603 | Saveダイアログタイトルを保存先別に変更（"Save to cloud as..." / "Save to file as..."）、保存開始前ステータスメッセージ追加、写真マーカータップ時にIndexedDB最新データを使用（facing不一致修正）、iOS Shake to Undo防止（visibilitychange時blur・ダイアログcleanup時blur）、Textボタンの入力済み状態を青色で視覚的に表示 |
