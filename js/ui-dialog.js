@@ -8,12 +8,17 @@ import { toggleVisibility, updateStatus } from './ui-common.js';
 /**
  * ドキュメント名入力ダイアログを表示
  * @param {string} defaultName - デフォルト名
+ * @param {string} [title] - ダイアログタイトル（省略時はHTMLのまま）
  * @returns {Promise<string|null>}
  */
-export function showDocNameDialog(defaultName) {
+export function showDocNameDialog(defaultName, title) {
     return new Promise((resolve) => {
         const dialogId = 'docNameDialog';
         const input = document.getElementById('docNameInput');
+        if (title) {
+            const h2 = document.querySelector('#docNameDialog h2');
+            if (h2) h2.textContent = title;
+        }
         const okBtn = document.getElementById('docNameOkBtn');
         const cancelBtn = document.getElementById('docNameCancelBtn');
 

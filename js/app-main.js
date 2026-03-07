@@ -349,7 +349,7 @@ function setupEventListeners() {
             if (state.isFirebaseEnabled) {
                 const authed = await ensureFirebaseAuth();
                 if (!authed) return;
-                const docName = await showDocNameDialog(defaultName);
+                const docName = await showDocNameDialog(defaultName, 'Save to cloud as...');
                 if (docName) {
                     setUiBusy(true);
                     try {
@@ -360,7 +360,7 @@ function setupEventListeners() {
                     }
                 }
             } else {
-                const docName = await showDocNameDialog(defaultName);
+                const docName = await showDocNameDialog(defaultName, 'Save to file as...');
                 if (docName) {
                     setUiBusy(true);
                     try {
