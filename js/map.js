@@ -429,8 +429,8 @@ export async function displayEmergencyPoints() {
             pointToLayer: (feature, latlng) => {
                 return L.circleMarker(latlng, {
                     radius: 7,
-                    fillColor: '#FF3300',
-                    color: '#CC0000',
+                    fillColor: '#00AA00',
+                    color: '#007700',
                     weight: 2,
                     opacity: 1,
                     fillOpacity: 0.8
@@ -440,7 +440,7 @@ export async function displayEmergencyPoints() {
                 if (feature.properties) {
                     const id = feature.properties.id ?? feature.id ?? '';
                     const name = feature.properties.name || '';
-                    layer.bindPopup(`<b>id:</b> ${id}<br><b>name:</b> ${name}`);
+                    layer.bindPopup(`${id}<br>${name}`);
                 }
             }
         }).eachLayer(layer => {
