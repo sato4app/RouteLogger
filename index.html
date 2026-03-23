@@ -268,8 +268,8 @@
             <div class="settings-list">
                 <div class="setting-item">
                     <div class="setting-label">
-                        <div class="setting-title">Show Clock</div>
-                        <div class="setting-desc">Display current time on map</div>
+                        <div class="setting-title">時刻を表示</div>
+                        <div class="setting-desc">現在時刻を地図画面上に表示</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="showClockToggle" checked>
@@ -278,8 +278,8 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">
-                        <div class="setting-title">Use Firebase</div>
-                        <div class="setting-desc">Save/Load data to/from Cloud</div>
+                        <div class="setting-title">データベースを使用</div>
+                        <div class="setting-desc">データの保存にクラウドのデータベースを使用</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="useFirebaseToggle">
@@ -295,9 +295,9 @@
                     </div>
                     <!-- 編集/登録フォーム -->
                     <div id="userEditForm" class="hidden">
-                        <input type="text" id="registerUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off" style="margin-bottom:6px;">
-                        <input type="email" id="registerEmailInput" class="text-input" placeholder="Email address" autocomplete="email" style="margin-bottom:6px;">
-                        <input type="text" id="registerDisplayNameInput" class="text-input" placeholder="Full name" autocomplete="name" style="margin-bottom:6px;">
+                        <input type="text" id="registerUsernameInput" class="text-input" placeholder="ユーザー名（半角英数字のみ）" autocomplete="off" style="margin-bottom:6px;">
+                        <input type="email" id="registerEmailInput" class="text-input" placeholder="メールアドレス" autocomplete="email" style="margin-bottom:6px;">
+                        <input type="text" id="registerDisplayNameInput" class="text-input" placeholder="氏名（苗字のみ可）" autocomplete="name" style="margin-bottom:6px;">
                         <p id="userEditMsg" class="error-msg"></p>
                         <div style="display:flex; gap:8px; margin-top:4px;">
                             <button id="userEditSaveBtn" class="primary-btn" style="flex:1;">更新・登録</button>
@@ -317,8 +317,8 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">
-                        <div class="setting-title">Show Minoo Emergency Points</div>
-                        <div class="setting-desc">Show Minoo Official Emergency Points(about 200 points)</div>
+                        <div class="setting-title">箕面緊急ポイントを表示</div>
+                        <div class="setting-desc">箕面の緊急ポイント（約170点）をマーカー表示</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="minooEmergencyToggle">
