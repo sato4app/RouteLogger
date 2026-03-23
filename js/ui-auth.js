@@ -41,21 +41,31 @@ export async function checkAndUpdateUserStatus() {
  * 認証UIのイベントリスナーを初期化
  */
 export function initAuthUI() {
+    // 同意チェックボックスでOKボタンの有効/無効を切り替え
+    document.getElementById('userEditAgreeCheck')?.addEventListener('change', (e) => {
+        const saveBtn = document.getElementById('userEditSaveBtn');
+        if (saveBtn) saveBtn.disabled = !e.target.checked;
+    });
+
     // 通常表示をタップ → 編集フォームを展開（localStorageから復元）
     document.getElementById('userNormalView')?.addEventListener('click', () => {
         const usernameInput = document.getElementById('registerUsernameInput');
         const emailInput = document.getElementById('registerEmailInput');
         const displayNameInput = document.getElementById('registerDisplayNameInput');
+        const agreeCheck = document.getElementById('userEditAgreeCheck');
+        const saveBtn = document.getElementById('userEditSaveBtn');
         const msg = document.getElementById('userEditMsg');
         if (usernameInput) usernameInput.value = localStorage.getItem(USERNAME_KEY) || '';
         if (emailInput) emailInput.value = localStorage.getItem(EMAIL_KEY) || '';
         if (displayNameInput) displayNameInput.value = localStorage.getItem(DISPLAY_NAME_KEY) || '';
+        if (agreeCheck) agreeCheck.checked = false;
+        if (saveBtn) saveBtn.disabled = true;
         if (msg) msg.textContent = '';
         document.getElementById('userNormalView')?.classList.add('hidden');
         document.getElementById('userEditForm')?.classList.remove('hidden');
     });
 
-    // [更新・登録] ボタン: 既存ユーザーならlocalStorage更新、新規ユーザーならFirestore登録
+    // [OK] ボタン: 既存ユーザーならlocalStorage更新、新規ユーザーならFirestore登録
     document.getElementById('userEditSaveBtn')?.addEventListener('click', async () => {
         const username = document.getElementById('registerUsernameInput')?.value?.trim();
         const email = document.getElementById('registerEmailInput')?.value?.trim();
@@ -94,6 +104,8 @@ export function initAuthUI() {
                 localStorage.setItem(EMAIL_KEY, email);
                 localStorage.setItem(DISPLAY_NAME_KEY, displayName);
             }
+            const agreeCheck = document.getElementById('userEditAgreeCheck');
+            if (agreeCheck) agreeCheck.checked = false;
             await checkAndUpdateUserStatus();
             document.getElementById('userNormalView')?.classList.remove('hidden');
             document.getElementById('userEditForm')?.classList.add('hidden');
@@ -101,7 +113,7 @@ export function initAuthUI() {
             if (msg) msg.textContent = e.message;
         } finally {
             saveBtn.disabled = false;
-            saveBtn.textContent = '更新・登録';
+            saveBtn.textContent = 'OK';
         }
     });
 
@@ -122,10 +134,14 @@ function _clearAllFields() {
     const usernameInput = document.getElementById('registerUsernameInput');
     const emailInput = document.getElementById('registerEmailInput');
     const displayNameInput = document.getElementById('registerDisplayNameInput');
+    const agreeCheck = document.getElementById('userEditAgreeCheck');
+    const saveBtn = document.getElementById('userEditSaveBtn');
     const msg = document.getElementById('userEditMsg');
     if (usernameInput) usernameInput.value = '';
     if (emailInput) emailInput.value = '';
     if (displayNameInput) displayNameInput.value = '';
+    if (agreeCheck) agreeCheck.checked = false;
+    if (saveBtn) saveBtn.disabled = true;
     if (msg) msg.textContent = '';
     localStorage.removeItem(USERNAME_KEY);
     localStorage.removeItem(EMAIL_KEY);

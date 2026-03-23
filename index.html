@@ -298,12 +298,15 @@
                         <input type="text" id="registerUsernameInput" class="text-input" placeholder="ユーザー名（半角英数字のみ）" autocomplete="off" style="margin-bottom:6px;">
                         <input type="email" id="registerEmailInput" class="text-input" placeholder="メールアドレス（登録済みなら省略可）" autocomplete="email" style="margin-bottom:6px;">
                         <input type="text" id="registerDisplayNameInput" class="text-input" placeholder="氏名（登録済みなら省略可。姓のみでも可）" autocomplete="name" style="margin-bottom:6px;">
-                        <p class="setting-desc" style="margin:4px 0 6px;">登録済みユーザーはユーザー名のみの入力でもよい</p>
+                        <label style="display:flex; align-items:center; gap:6px; margin:6px 0; font-size:0.85em; cursor:pointer;">
+                            <input type="checkbox" id="userEditAgreeCheck">
+                            私は箕面ハイキングのアプリ制作の協力者です。
+                        </label>
                         <p id="userEditMsg" class="error-msg"></p>
-                        <div style="display:flex; gap:8px; margin-top:4px;">
-                            <button id="userEditSaveBtn" class="primary-btn" style="flex:1;">登録</button>
-                            <button id="userEditClearBtn" class="secondary-btn" style="flex:1;">クリア</button>
-                            <button id="userEditCancelBtn" class="secondary-btn" style="flex:1;">キャンセル</button>
+                        <div style="display:flex; gap:8px; margin-top:4px; flex-wrap:wrap;">
+                            <button id="userEditSaveBtn" class="primary-btn" disabled>OK</button>
+                            <button id="userEditClearBtn" class="secondary-btn">クリア</button>
+                            <button id="userEditCancelBtn" class="secondary-btn" style="white-space:nowrap;">キャンセル</button>
                         </div>
                     </div>
                 </div>
