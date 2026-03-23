@@ -127,15 +127,18 @@ export function initSettings() {
             if (userConnectSection) {
                 userConnectSection.classList.toggle('hidden', !e.target.checked);
             }
-            if (!e.target.checked) {
-                state.setCurrentUserInfo(null);
-                updateUserConnectUI();
-            }
         });
     }
-    const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
-    if (savedFirebaseSetting !== null) {
-        state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
+    // ユーザー名なし → Firebase OFF強制、あり → 保存済み設定を引き継ぐ
+    const savedUsername = localStorage.getItem('routeLogger_username');
+    if (!savedUsername) {
+        state.setIsFirebaseEnabled(false);
+        localStorage.setItem('routeLogger_useFirebase', 'false');
+    } else {
+        const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
+        if (savedFirebaseSetting !== null) {
+            state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
+        }
     }
 
     // Show Facing Buttons Toggle

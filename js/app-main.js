@@ -11,6 +11,7 @@ import { getAllExternalData, getAllTracks, getAllPhotos, clearIndexedDBSilent, c
 import { displayExternalGeoJSON, displayAllTracks, clearMapData, displayEmergencyPoints, clearEmergencyPoints } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
 import { initAuthUI } from './ui-auth.js';
+import { signInAnonymously, getUserByUsername } from './auth.js';
 
 /**
  * アプリケーション初期化
@@ -20,10 +21,8 @@ async function initApp() {
     initClock();
     initSettings();
 
-    // 認証UIの初期化（接続完了時のコールバック）
-    initAuthUI((userInfo) => {
-        alert(`ようこそ @${userInfo.username} さん`);
-    });
+    // 認証UIの初期化
+    initAuthUI();
 
     // IndexedDB初期化
     try {
@@ -92,10 +91,19 @@ async function initApp() {
  * @returns {boolean} 接続済みかどうか
  */
 async function ensureFirebaseAuth() {
-    if (state.currentUserInfo) return true;
-    alert('Firebase利用にはユーザー接続が必要です。\nSettingsでユーザー名を入力して接続してください。');
-    showSettingsDialog();
-    return false;
+    const username = localStorage.getItem('routeLogger_username');
+    if (!username) {
+        alert('Firebase利用にはユーザー名の設定が必要です。\nSettingsでユーザー名を入力してください。');
+        showSettingsDialog();
+        return false;
+    }
+    try {
+        await signInAnonymously();
+    } catch (e) {
+        alert('Firebase認証に失敗しました: ' + e.message);
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -367,6 +375,25 @@ function setupEventListeners() {
             if (state.isFirebaseEnabled) {
                 const authed = await ensureFirebaseAuth();
                 if (!authed) return;
+                // userAdminに登録済みか確認
+                const username = localStorage.getItem('routeLogger_username');
+                try {
+                    const userInfo = await getUserByUsername(username);
+                    if (!userInfo) {
+                        alert(`ユーザー名 "${username}" はuserAdminに登録されていません。\nSettingsでユーザー名を確認するか、管理者に登録を依頼してください。`);
+                        returnToMainControl();
+                        return;
+                    }
+                    if (userInfo.status === 'denied' || userInfo.status === 'disabled') {
+                        alert('このユーザーは無効化されています。管理者に連絡してください。');
+                        returnToMainControl();
+                        return;
+                    }
+                } catch (e) {
+                    alert('ユーザー確認に失敗しました: ' + e.message);
+                    returnToMainControl();
+                    return;
+                }
                 const docName = await showDocNameDialog(defaultName, 'Save to cloud as...');
                 if (docName) {
                     setUiBusy(true);

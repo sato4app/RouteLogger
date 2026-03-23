@@ -288,24 +288,8 @@
                 </div>
                 <!-- User Connect Section (Use Firebase ON のとき表示) -->
                 <div id="userConnectSection" class="hidden" style="padding: 8px 16px 4px;">
-                    <!-- 接続済み表示 -->
-                    <div id="userConnectedInfo" class="hidden" style="display:flex; align-items:center; justify-content:space-between; padding: 4px 0 8px;">
-                        <div>
-                            <div class="setting-title" id="settingsUsernameDisplay"></div>
-                            <div class="setting-desc" id="settingsEmailDisplay"></div>
-                        </div>
-                        <button id="userDisconnectBtn" class="secondary-btn sign-out-btn">Disconnect</button>
-                    </div>
-                    <!-- 接続フォーム -->
-                    <div id="userConnectForm">
-                        <input type="text" id="settingsUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off" style="margin-bottom:6px;">
-                        <div id="newUserFields" class="hidden">
-                            <input type="email" id="settingsEmailInput" class="text-input" placeholder="Email address" autocomplete="email" style="margin-bottom:6px;">
-                            <input type="text" id="settingsDisplayNameInput" class="text-input" placeholder="Full name" autocomplete="name" style="margin-bottom:6px;">
-                        </div>
-                        <p id="userConnectMsg" class="error-msg"></p>
-                        <button id="userConnectBtn" class="primary-btn" style="width:100%; margin-bottom:8px;">Connect</button>
-                    </div>
+                    <div class="setting-title" id="settingsUsernameDisplay" style="margin-bottom:4px;"></div>
+                    <input type="text" id="settingsUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off">
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">
