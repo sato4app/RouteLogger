@@ -62,7 +62,17 @@ export function initAuthUI() {
         const msg = document.getElementById('userEditMsg');
         if (msg) msg.textContent = '';
 
-        if (!username) { if (msg) msg.textContent = 'ユーザー名を入力してください'; return; }
+        if (!username) {
+            // ユーザー名が空白 → 全欄クリア
+            const usernameInput = document.getElementById('registerUsernameInput');
+            const emailInput = document.getElementById('registerEmailInput');
+            const displayNameInput = document.getElementById('registerDisplayNameInput');
+            if (usernameInput) usernameInput.value = '';
+            if (emailInput) emailInput.value = '';
+            if (displayNameInput) displayNameInput.value = '';
+            if (msg) msg.textContent = '';
+            return;
+        }
         if (!/^[a-zA-Z0-9]+$/.test(username)) { if (msg) msg.textContent = 'ユーザー名は英数字のみ使用できます'; return; }
 
         const saveBtn = document.getElementById('userEditSaveBtn');
@@ -92,7 +102,7 @@ export function initAuthUI() {
             if (msg) msg.textContent = e.message;
         } finally {
             saveBtn.disabled = false;
-            saveBtn.textContent = '登録';
+            saveBtn.textContent = '更新・登録';
         }
     });
 
