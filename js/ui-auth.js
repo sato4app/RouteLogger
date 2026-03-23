@@ -5,125 +5,87 @@ import { signInAnonymously, getUserByUsername, registerUser } from './auth.js';
 const USERNAME_KEY = 'routeLogger_username';
 
 /**
- * 通常表示に戻す
+ * userAdminの登録状態を確認してUIを更新
+ * Use Firebase ON時・設定ダイアログを開いた時・起動時に呼び出す
  */
-function showNormalView() {
-    document.getElementById('userNormalView')?.classList.remove('hidden');
-    document.getElementById('userChangeForm')?.classList.add('hidden');
-    document.getElementById('userRegisterForm')?.classList.add('hidden');
-}
+export async function checkAndUpdateUserStatus() {
+    const username = localStorage.getItem(USERNAME_KEY);
+    const display = document.getElementById('settingsUsernameDisplay');
+    const statusEl = document.getElementById('userRegistrationStatus');
 
-/**
- * ユーザー名表示を更新（通常表示状態に戻す）
- */
-export function updateUserConnectUI() {
-    const savedUsername = localStorage.getItem(USERNAME_KEY);
-    const usernameDisplay = document.getElementById('settingsUsernameDisplay');
-    const changeBtn = document.getElementById('userChangeBtn');
+    if (!username) {
+        if (display) display.textContent = '@（ユーザ登録なし）';
+        if (statusEl) statusEl.textContent = '';
+        return;
+    }
 
-    if (usernameDisplay) {
-        usernameDisplay.textContent = savedUsername ? `@${savedUsername}` : '（未設定）';
+    if (display) display.textContent = `@${username}`;
+    if (statusEl) statusEl.textContent = '';
+
+    try {
+        await signInAnonymously();
+        const userInfo = await getUserByUsername(username);
+        if (userInfo && userInfo.status !== 'denied' && userInfo.status !== 'disabled') {
+            if (statusEl) statusEl.textContent = '（登録確認済み）';
+        }
+    } catch (e) {
+        // ネットワークエラー等は無視
     }
-    if (changeBtn) {
-        changeBtn.classList.toggle('hidden', !savedUsername);
-    }
-    showNormalView();
 }
 
 /**
  * 認証UIのイベントリスナーを初期化
  */
 export function initAuthUI() {
-    // [変更] ボタン → 変更フォームを表示
-    document.getElementById('userChangeBtn')?.addEventListener('click', () => {
-        const savedUsername = localStorage.getItem(USERNAME_KEY);
-        const input = document.getElementById('settingsUsernameInput');
-        const msg = document.getElementById('userChangeMsg');
-        if (input) input.value = savedUsername || '';
-        if (msg) msg.textContent = '';
-        document.getElementById('userNormalView')?.classList.add('hidden');
-        document.getElementById('userChangeForm')?.classList.remove('hidden');
-    });
-
-    // [変更フォーム] 保存 → userAdminチェック後にlocalStorage更新
-    document.getElementById('userChangeSaveBtn')?.addEventListener('click', async () => {
-        const input = document.getElementById('settingsUsernameInput');
-        const msg = document.getElementById('userChangeMsg');
-        const username = input?.value?.trim();
-        if (msg) msg.textContent = '';
-
-        if (!username) {
-            if (msg) msg.textContent = 'ユーザー名を入力してください';
-            return;
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            if (msg) msg.textContent = 'ユーザー名は英数字のみ使用できます';
-            return;
-        }
-
-        const saveBtn = document.getElementById('userChangeSaveBtn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = '確認中...';
-        try {
-            await signInAnonymously();
-            const userInfo = await getUserByUsername(username);
-            if (!userInfo) {
-                if (msg) msg.textContent = 'このユーザー名はuserAdminに登録されていません';
-                return;
-            }
-            if (userInfo.status === 'denied' || userInfo.status === 'disabled') {
-                if (msg) msg.textContent = 'このユーザーは無効化されています';
-                return;
-            }
-            localStorage.setItem(USERNAME_KEY, username);
-            updateUserConnectUI();
-        } catch (e) {
-            if (msg) msg.textContent = e.message;
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '保存';
-        }
-    });
-
-    // [変更フォーム] キャンセル
-    document.getElementById('userChangeCancelBtn')?.addEventListener('click', showNormalView);
-
-    // [新規登録] ボタン → 登録フォームを表示（ユーザー名をデフォルト入力）
-    document.getElementById('userRegisterBtn')?.addEventListener('click', () => {
+    // 通常表示をタップ → 編集フォームを展開
+    document.getElementById('userNormalView')?.addEventListener('click', () => {
         const savedUsername = localStorage.getItem(USERNAME_KEY);
         const usernameInput = document.getElementById('registerUsernameInput');
         const emailInput = document.getElementById('registerEmailInput');
         const displayNameInput = document.getElementById('registerDisplayNameInput');
-        const msg = document.getElementById('userRegisterMsg');
+        const msg = document.getElementById('userEditMsg');
         if (usernameInput) usernameInput.value = savedUsername || '';
         if (emailInput) emailInput.value = '';
         if (displayNameInput) displayNameInput.value = '';
         if (msg) msg.textContent = '';
         document.getElementById('userNormalView')?.classList.add('hidden');
-        document.getElementById('userRegisterForm')?.classList.remove('hidden');
+        document.getElementById('userEditForm')?.classList.remove('hidden');
     });
 
-    // [新規登録フォーム] 登録 → 重複チェック後にFirestore登録
-    document.getElementById('userRegisterSaveBtn')?.addEventListener('click', async () => {
+    // [登録] ボタン: 既存ユーザーならlocalStorage更新、新規ユーザーならFirestore登録
+    document.getElementById('userEditSaveBtn')?.addEventListener('click', async () => {
         const username = document.getElementById('registerUsernameInput')?.value?.trim();
         const email = document.getElementById('registerEmailInput')?.value?.trim();
         const displayName = document.getElementById('registerDisplayNameInput')?.value?.trim();
-        const msg = document.getElementById('userRegisterMsg');
+        const msg = document.getElementById('userEditMsg');
         if (msg) msg.textContent = '';
 
         if (!username) { if (msg) msg.textContent = 'ユーザー名を入力してください'; return; }
         if (!/^[a-zA-Z0-9]+$/.test(username)) { if (msg) msg.textContent = 'ユーザー名は英数字のみ使用できます'; return; }
-        if (!email) { if (msg) msg.textContent = 'メールアドレスを入力してください'; return; }
-        if (!displayName) { if (msg) msg.textContent = '氏名を入力してください'; return; }
 
-        const saveBtn = document.getElementById('userRegisterSaveBtn');
+        const saveBtn = document.getElementById('userEditSaveBtn');
         saveBtn.disabled = true;
-        saveBtn.textContent = '登録中...';
+        saveBtn.textContent = '確認中...';
         try {
             await signInAnonymously();
-            await registerUser(username, email, displayName);
-            localStorage.setItem(USERNAME_KEY, username);
-            updateUserConnectUI();
+            const userInfo = await getUserByUsername(username);
+            if (userInfo) {
+                // 既存ユーザー
+                if (userInfo.status === 'denied' || userInfo.status === 'disabled') {
+                    if (msg) msg.textContent = 'このユーザーは無効化されています';
+                    return;
+                }
+                localStorage.setItem(USERNAME_KEY, username);
+            } else {
+                // 新規ユーザー: email・氏名が必要
+                if (!email) { if (msg) msg.textContent = '新規ユーザーです。メールアドレスを入力してください'; return; }
+                if (!displayName) { if (msg) msg.textContent = '新規ユーザーです。氏名を入力してください'; return; }
+                await registerUser(username, email, displayName);
+                localStorage.setItem(USERNAME_KEY, username);
+            }
+            await checkAndUpdateUserStatus();
+            document.getElementById('userNormalView')?.classList.remove('hidden');
+            document.getElementById('userEditForm')?.classList.add('hidden');
         } catch (e) {
             if (msg) msg.textContent = e.message;
         } finally {
@@ -132,6 +94,9 @@ export function initAuthUI() {
         }
     });
 
-    // [新規登録フォーム] キャンセル
-    document.getElementById('userRegisterCancelBtn')?.addEventListener('click', showNormalView);
+    // [キャンセル] ボタン
+    document.getElementById('userEditCancelBtn')?.addEventListener('click', () => {
+        document.getElementById('userNormalView')?.classList.remove('hidden');
+        document.getElementById('userEditForm')?.classList.add('hidden');
+    });
 }

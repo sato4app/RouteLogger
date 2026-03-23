@@ -288,32 +288,20 @@
                 </div>
                 <!-- User Connect Section (Use Firebase ON のとき表示) -->
                 <div id="userConnectSection" class="hidden" style="padding: 8px 16px 4px;">
-                    <!-- 通常表示 -->
-                    <div id="userNormalView" style="display:flex; align-items:center; justify-content:space-between; min-height:32px;">
+                    <!-- 通常表示（タップで編集フォームを展開） -->
+                    <div id="userNormalView" style="display:flex; align-items:center; justify-content:space-between; min-height:32px; cursor:pointer;">
                         <div class="setting-title" id="settingsUsernameDisplay"></div>
-                        <div style="display:flex; gap:6px;">
-                            <button id="userChangeBtn" class="secondary-btn hidden">変更</button>
-                            <button id="userRegisterBtn" class="secondary-btn">新規登録</button>
-                        </div>
+                        <div class="setting-desc" id="userRegistrationStatus" style="text-align:right;"></div>
                     </div>
-                    <!-- 変更フォーム -->
-                    <div id="userChangeForm" class="hidden">
-                        <input type="text" id="settingsUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off" style="margin-bottom:6px;">
-                        <p id="userChangeMsg" class="error-msg"></p>
-                        <div style="display:flex; gap:8px; margin-top:4px;">
-                            <button id="userChangeSaveBtn" class="primary-btn" style="flex:1;">保存</button>
-                            <button id="userChangeCancelBtn" class="secondary-btn" style="flex:1;">キャンセル</button>
-                        </div>
-                    </div>
-                    <!-- 新規登録フォーム -->
-                    <div id="userRegisterForm" class="hidden">
+                    <!-- 編集/登録フォーム -->
+                    <div id="userEditForm" class="hidden">
                         <input type="text" id="registerUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off" style="margin-bottom:6px;">
                         <input type="email" id="registerEmailInput" class="text-input" placeholder="Email address" autocomplete="email" style="margin-bottom:6px;">
                         <input type="text" id="registerDisplayNameInput" class="text-input" placeholder="Full name" autocomplete="name" style="margin-bottom:6px;">
-                        <p id="userRegisterMsg" class="error-msg"></p>
+                        <p id="userEditMsg" class="error-msg"></p>
                         <div style="display:flex; gap:8px; margin-top:4px;">
-                            <button id="userRegisterSaveBtn" class="primary-btn" style="flex:1;">登録</button>
-                            <button id="userRegisterCancelBtn" class="secondary-btn" style="flex:1;">キャンセル</button>
+                            <button id="userEditSaveBtn" class="primary-btn" style="flex:1;">登録</button>
+                            <button id="userEditCancelBtn" class="secondary-btn" style="flex:1;">キャンセル</button>
                         </div>
                     </div>
                 </div>

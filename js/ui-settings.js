@@ -2,7 +2,7 @@
 
 import * as state from './state.js';
 import { toggleVisibility } from './ui-common.js';
-import { updateUserConnectUI } from './ui-auth.js';
+import { checkAndUpdateUserStatus } from './ui-auth.js';
 
 let clockInterval = null;
 
@@ -42,15 +42,17 @@ function updateClock() {
  * ユーザー接続UIを更新（ui-auth.jsに委譲）
  */
 export function updateSettingsUserInfo() {
-    updateUserConnectUI();
+    checkAndUpdateUserStatus();
 }
 
 /**
  * 設定ダイアログを表示
  */
 export function showSettingsDialog() {
-    // ユーザー接続UIを更新
-    updateUserConnectUI();
+    // Use Firebase ON の場合、登録状態を確認して更新
+    if (state.isFirebaseEnabled) {
+        checkAndUpdateUserStatus();
+    }
 
     // 現在の設定値をUIに反映
     const showClockToggle = document.getElementById('showClockToggle');
@@ -127,18 +129,15 @@ export function initSettings() {
             if (userConnectSection) {
                 userConnectSection.classList.toggle('hidden', !e.target.checked);
             }
+            // チェックON時: userAdminの登録状態を確認
+            if (e.target.checked) {
+                checkAndUpdateUserStatus();
+            }
         });
     }
-    // ユーザー名なし → Firebase OFF強制、あり → 保存済み設定を引き継ぐ
-    const savedUsername = localStorage.getItem('routeLogger_username');
-    if (!savedUsername) {
-        state.setIsFirebaseEnabled(false);
-        localStorage.setItem('routeLogger_useFirebase', 'false');
-    } else {
-        const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
-        if (savedFirebaseSetting !== null) {
-            state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
-        }
+    const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
+    if (savedFirebaseSetting !== null) {
+        state.setIsFirebaseEnabled(savedFirebaseSetting === 'true');
     }
 
     // Show Facing Buttons Toggle

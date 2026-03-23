@@ -10,7 +10,7 @@ import { updateStatus, showPhotoList, closePhotoList, closePhotoViewer, showData
 import { getAllExternalData, getAllTracks, getAllPhotos, clearIndexedDBSilent, clearRouteLogData, restoreTrack, savePhoto } from './db.js';
 import { displayExternalGeoJSON, displayAllTracks, clearMapData, displayEmergencyPoints, clearEmergencyPoints } from './map.js';
 import { exportToKmz } from './kmz-handler.js';
-import { initAuthUI } from './ui-auth.js';
+import { initAuthUI, checkAndUpdateUserStatus } from './ui-auth.js';
 import { signInAnonymously } from './auth.js';
 
 /**
@@ -23,6 +23,11 @@ async function initApp() {
 
     // 認証UIの初期化
     initAuthUI();
+
+    // 起動時: Firebase有効の場合、userAdminの登録状態を確認
+    if (state.isFirebaseEnabled) {
+        checkAndUpdateUserStatus();
+    }
 
     // IndexedDB初期化
     try {
