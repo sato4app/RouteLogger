@@ -1,92 +1,58 @@
 // RouteLogger - Firebase認証・ユーザー管理
 
-const EMAIL_KEY = 'routeLogger_emailForSignIn';
 const COLLECTION = 'userAdmin';
 
 /**
- * サインインリンクをメールで送信
- * @param {string} email
+ * 匿名認証でサインイン（未サインインの場合のみ実行）
  */
-export async function sendSignInLink(email) {
-    const actionCodeSettings = {
-        url: window.location.origin + window.location.pathname,
-        handleCodeInApp: true,
-    };
-    await firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings);
-    localStorage.setItem(EMAIL_KEY, email);
+export async function signInAnonymously() {
+    const current = firebase.auth().currentUser;
+    if (current) return current;
+    const result = await firebase.auth().signInAnonymously();
+    return result.user;
 }
 
 /**
- * URLにサインインリンクが含まれているか確認し、サインインを完了する
- * @returns {firebase.auth.UserCredential|null}
- */
-export async function tryCompleteEmailLinkSignIn() {
-    if (!firebase.auth().isSignInWithEmailLink(window.location.href)) return null;
-
-    let email = localStorage.getItem(EMAIL_KEY);
-    if (!email) {
-        email = prompt('確認のためメールアドレスを入力してください:');
-        if (!email) return null;
-    }
-
-    const result = await firebase.auth().signInWithEmailLink(email, window.location.href);
-    localStorage.removeItem(EMAIL_KEY);
-    window.history.replaceState(null, '', window.location.origin + window.location.pathname);
-    return result;
-}
-
-/**
- * Firebase Auth UIDからuserAdminのユーザー情報を取得
- * @param {string} uid
+ * ユーザー名（doc ID）でユーザー情報を取得
+ * @param {string} username
  * @returns {Promise<{username:string, email:string, displayName:string, status:string}|null>}
  */
-export async function getUserByUid(uid) {
+export async function getUserByUsername(username) {
     const db = firebase.firestore();
-    const snapshot = await db.collection(COLLECTION).where('uid', '==', uid).limit(1).get();
-    if (snapshot.empty) return null;
-    const doc = snapshot.docs[0];
+    const doc = await db.collection(COLLECTION).doc(username).get();
+    if (!doc.exists) return null;
     return { username: doc.id, ...doc.data() };
 }
 
 /**
- * ユーザー名が利用可能かチェック（doc IDが存在しない = 利用可能）
- * @param {string} username
- * @returns {Promise<boolean>}
- */
-export async function isUsernameAvailable(username) {
-    const db = firebase.firestore();
-    const doc = await db.collection(COLLECTION).doc(username).get();
-    return !doc.exists;
-}
-
-/**
  * 新規ユーザーをuserAdminコレクションに登録
- * ユーザー名がdoc IDとなり変更不可
+ * ユーザー名がdoc IDとなり変更不可、承認プロセスなし（status=active）
  * @param {string} username 英数字のみ
+ * @param {string} email メールアドレス
  * @param {string} displayName 氏名
  * @returns {Promise<{username:string, email:string, displayName:string, status:string}>}
  */
-export async function registerUser(username, displayName) {
+export async function registerUser(username, email, displayName) {
     const currentUser = firebase.auth().currentUser;
     if (!currentUser) throw new Error('認証されていません');
-    if (!username) throw new Error('ユーザー名を入力してください');
-    if (!/^[a-zA-Z0-9]+$/.test(username)) throw new Error('ユーザー名は英数字のみ使用できます');
+    if (!username || !/^[a-zA-Z0-9]+$/.test(username)) throw new Error('ユーザー名は英数字のみ使用できます');
+    if (!email) throw new Error('メールアドレスを入力してください');
     if (!displayName) throw new Error('氏名を入力してください');
 
-    const available = await isUsernameAvailable(username);
-    if (!available) throw new Error('このユーザー名はすでに使用されています');
-
     const db = firebase.firestore();
+    const existing = await db.collection(COLLECTION).doc(username).get();
+    if (existing.exists) throw new Error('このユーザー名はすでに使用されています');
+
     await db.collection(COLLECTION).doc(username).set({
-        email: currentUser.email,
-        displayName: displayName,
+        email,
+        displayName,
         uid: currentUser.uid,
-        status: 'pending',
+        status: 'active',
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    return { username, email: currentUser.email, displayName, status: 'pending' };
+    return { username, email, displayName, status: 'active' };
 }
 
 /**
@@ -98,11 +64,4 @@ export async function updateLastLogin(username) {
     await db.collection(COLLECTION).doc(username).update({
         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-}
-
-/**
- * サインアウト
- */
-export async function signOutUser() {
-    await firebase.auth().signOut();
 }

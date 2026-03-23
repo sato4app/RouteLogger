@@ -261,49 +261,11 @@
     <!-- Clock Display -->
     <div id="clockDisplay">00:00</div>
 
-    <!-- Login Dialog -->
-    <div id="loginDialog" class="modal-dialog hidden">
-        <div class="modal-content">
-            <h2>Sign In</h2>
-            <p class="dialog-desc">Enter your email address to receive a sign-in link.</p>
-            <input type="email" id="loginEmailInput" class="text-input" placeholder="Email address" autocomplete="email">
-            <div class="modal-actions">
-                <button id="loginSendBtn" class="primary-btn" style="width: 100%;">Send Sign-in Link</button>
-            </div>
-            <div id="loginSentMsg" class="login-sent-msg hidden">
-                <p>Sign-in link sent! Please check your email and click the link.</p>
-                <button id="loginResendBtn" class="secondary-btn">Resend</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Register Dialog -->
-    <div id="registerDialog" class="modal-dialog hidden">
-        <div class="modal-content">
-            <h2>Register</h2>
-            <p class="dialog-desc">Welcome! Please set up your profile.</p>
-            <input type="text" id="registerEmailDisplay" class="text-input" disabled>
-            <input type="text" id="registerUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off">
-            <input type="text" id="registerDisplayNameInput" class="text-input" placeholder="Full name" autocomplete="name">
-            <p id="registerErrorMsg" class="error-msg"></p>
-            <div class="modal-actions">
-                <button id="registerSubmitBtn" class="primary-btn" style="width: 100%;">Register</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Settings Dialog -->
     <div id="settingsDialog" class="modal-dialog hidden">
         <div class="modal-content">
             <h2>Settings</h2>
             <div class="settings-list">
-                <div id="authSettingSection" class="setting-item auth-setting-section hidden">
-                    <div class="setting-label">
-                        <div class="setting-title" id="settingsUsernameDisplay"></div>
-                        <div class="setting-desc" id="settingsEmailDisplay"></div>
-                    </div>
-                    <button id="settingsSignOutBtn" class="secondary-btn sign-out-btn">Sign Out</button>
-                </div>
                 <div class="setting-item">
                     <div class="setting-label">
                         <div class="setting-title">Show Clock</div>
@@ -323,6 +285,27 @@
                         <input type="checkbox" id="useFirebaseToggle">
                         <span class="slider round"></span>
                     </label>
+                </div>
+                <!-- User Connect Section (Use Firebase ON のとき表示) -->
+                <div id="userConnectSection" class="hidden" style="padding: 8px 16px 4px;">
+                    <!-- 接続済み表示 -->
+                    <div id="userConnectedInfo" class="hidden" style="display:flex; align-items:center; justify-content:space-between; padding: 4px 0 8px;">
+                        <div>
+                            <div class="setting-title" id="settingsUsernameDisplay"></div>
+                            <div class="setting-desc" id="settingsEmailDisplay"></div>
+                        </div>
+                        <button id="userDisconnectBtn" class="secondary-btn sign-out-btn">Disconnect</button>
+                    </div>
+                    <!-- 接続フォーム -->
+                    <div id="userConnectForm">
+                        <input type="text" id="settingsUsernameInput" class="text-input" placeholder="Username (alphanumeric only)" autocomplete="off" style="margin-bottom:6px;">
+                        <div id="newUserFields" class="hidden">
+                            <input type="email" id="settingsEmailInput" class="text-input" placeholder="Email address" autocomplete="email" style="margin-bottom:6px;">
+                            <input type="text" id="settingsDisplayNameInput" class="text-input" placeholder="Full name" autocomplete="name" style="margin-bottom:6px;">
+                        </div>
+                        <p id="userConnectMsg" class="error-msg"></p>
+                        <button id="userConnectBtn" class="primary-btn" style="width:100%; margin-bottom:8px;">Connect</button>
+                    </div>
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">

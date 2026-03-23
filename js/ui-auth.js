@@ -1,130 +1,117 @@
-// RouteLogger - 認証UI（ログイン/登録ダイアログ）
+// RouteLogger - ユーザー接続UI（設定ダイアログ内）
 
-import { sendSignInLink, registerUser } from './auth.js';
-import { toggleVisibility } from './ui-common.js';
+import { getUserByUsername, registerUser, updateLastLogin, signInAnonymously } from './auth.js';
+import * as state from './state.js';
+
+const USERNAME_KEY = 'routeLogger_username';
 
 /**
- * ログインダイアログを表示
+ * 接続状態に応じてUIを更新
+ * 接続済み → 接続情報表示 / 未接続 → 入力フォーム表示
  */
-export function showLoginDialog() {
-    const emailInput = document.getElementById('loginEmailInput');
-    const sentMsg = document.getElementById('loginSentMsg');
-    const sendBtn = document.getElementById('loginSendBtn');
+export function updateUserConnectUI() {
+    const userConnectedInfo = document.getElementById('userConnectedInfo');
+    const userConnectForm = document.getElementById('userConnectForm');
+    const usernameDisplay = document.getElementById('settingsUsernameDisplay');
+    const emailDisplay = document.getElementById('settingsEmailDisplay');
 
-    if (emailInput) emailInput.value = localStorage.getItem('routeLogger_emailForSignIn') || '';
-    if (sentMsg) sentMsg.classList.add('hidden');
-    if (sendBtn) {
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Send Sign-in Link';
+    if (state.currentUserInfo) {
+        if (userConnectForm) userConnectForm.classList.add('hidden');
+        if (userConnectedInfo) userConnectedInfo.classList.remove('hidden');
+        if (usernameDisplay) usernameDisplay.textContent = `@${state.currentUserInfo.username}`;
+        if (emailDisplay) emailDisplay.textContent = state.currentUserInfo.email;
+    } else {
+        if (userConnectedInfo) userConnectedInfo.classList.add('hidden');
+        if (userConnectForm) userConnectForm.classList.remove('hidden');
+
+        // localStorageのユーザー名を復元、なければフォームをクリア
+        const savedUsername = localStorage.getItem(USERNAME_KEY);
+        const usernameInput = document.getElementById('settingsUsernameInput');
+        const newUserFields = document.getElementById('newUserFields');
+        const connectMsg = document.getElementById('userConnectMsg');
+        if (usernameInput) usernameInput.value = savedUsername || '';
+        if (newUserFields) newUserFields.classList.add('hidden');
+        if (connectMsg) connectMsg.textContent = '';
     }
-
-    toggleVisibility('loginDialog', true);
-}
-
-/**
- * ログインダイアログを閉じる
- */
-export function closeLoginDialog() {
-    toggleVisibility('loginDialog', false);
-}
-
-/**
- * ユーザー登録ダイアログを表示
- * @param {string} email - サインイン済みのメールアドレス
- */
-export function showRegisterDialog(email) {
-    const emailDisplay = document.getElementById('registerEmailDisplay');
-    const usernameInput = document.getElementById('registerUsernameInput');
-    const displayNameInput = document.getElementById('registerDisplayNameInput');
-    const errorMsg = document.getElementById('registerErrorMsg');
-    const submitBtn = document.getElementById('registerSubmitBtn');
-
-    if (emailDisplay) emailDisplay.value = email || '';
-    if (usernameInput) usernameInput.value = '';
-    if (displayNameInput) displayNameInput.value = '';
-    if (errorMsg) errorMsg.textContent = '';
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Register';
-    }
-
-    toggleVisibility('registerDialog', true);
-}
-
-/**
- * ユーザー登録ダイアログを閉じる
- */
-export function closeRegisterDialog() {
-    toggleVisibility('registerDialog', false);
 }
 
 /**
  * 認証UIのイベントリスナーを初期化
- * @param {Function} onRegisterComplete - 登録完了時のコールバック(userInfo)
+ * @param {Function} onConnectComplete - 接続完了時のコールバック(userInfo)
  */
-export function initAuthUI(onRegisterComplete) {
-    // ログインダイアログ - 送信ボタン
-    const loginSendBtn = document.getElementById('loginSendBtn');
-    if (loginSendBtn) {
-        loginSendBtn.addEventListener('click', async () => {
-            const email = document.getElementById('loginEmailInput')?.value?.trim();
-            if (!email) {
-                alert('メールアドレスを入力してください');
+export function initAuthUI(onConnectComplete) {
+    // Connectボタン
+    const connectBtn = document.getElementById('userConnectBtn');
+    if (connectBtn) {
+        connectBtn.addEventListener('click', async () => {
+            const usernameInput = document.getElementById('settingsUsernameInput');
+            const newUserFields = document.getElementById('newUserFields');
+            const connectMsg = document.getElementById('userConnectMsg');
+            const username = usernameInput?.value?.trim();
+
+            if (connectMsg) connectMsg.textContent = '';
+
+            if (!username) {
+                if (connectMsg) connectMsg.textContent = 'ユーザー名を入力してください';
                 return;
             }
-            loginSendBtn.disabled = true;
-            loginSendBtn.textContent = 'Sending...';
-            try {
-                await sendSignInLink(email);
-                document.getElementById('loginSentMsg')?.classList.remove('hidden');
-                loginSendBtn.textContent = 'Send Sign-in Link';
-            } catch (error) {
-                console.error('サインインリンク送信エラー:', error);
-                alert('送信に失敗しました: ' + error.message);
-                loginSendBtn.disabled = false;
-                loginSendBtn.textContent = 'Send Sign-in Link';
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                if (connectMsg) connectMsg.textContent = 'ユーザー名は英数字のみ使用できます';
+                return;
             }
-        });
-    }
 
-    // ログインダイアログ - 再送信ボタン
-    const loginResendBtn = document.getElementById('loginResendBtn');
-    if (loginResendBtn) {
-        loginResendBtn.addEventListener('click', async () => {
-            const email = document.getElementById('loginEmailInput')?.value?.trim();
-            if (!email) return;
-            loginResendBtn.disabled = true;
+            connectBtn.disabled = true;
+            connectBtn.textContent = '接続中...';
             try {
-                await sendSignInLink(email);
-                alert('サインインリンクを再送信しました');
+                // 匿名認証（未サインインの場合のみ実行）
+                await signInAnonymously();
+
+                // Firestoreでユーザー検索
+                const userInfo = await getUserByUsername(username);
+
+                if (userInfo) {
+                    // 既存ユーザー
+                    if (userInfo.status === 'denied' || userInfo.status === 'disabled') {
+                        if (connectMsg) connectMsg.textContent = 'このユーザーは無効化されています';
+                        return;
+                    }
+                    localStorage.setItem(USERNAME_KEY, username);
+                    await updateLastLogin(username);
+                    state.setCurrentUserInfo(userInfo);
+                    updateUserConnectUI();
+                    if (onConnectComplete) onConnectComplete(userInfo);
+                } else {
+                    // 新規ユーザー: email/displayName入力欄が未表示なら表示して終了
+                    if (newUserFields && newUserFields.classList.contains('hidden')) {
+                        newUserFields.classList.remove('hidden');
+                        if (connectMsg) connectMsg.textContent = '新規ユーザーです。メールアドレスと氏名を入力してください。';
+                        return;
+                    }
+                    // email/displayName入力済み → 登録
+                    const email = document.getElementById('settingsEmailInput')?.value?.trim();
+                    const displayName = document.getElementById('settingsDisplayNameInput')?.value?.trim();
+                    const newUserInfo = await registerUser(username, email, displayName);
+                    localStorage.setItem(USERNAME_KEY, username);
+                    state.setCurrentUserInfo(newUserInfo);
+                    updateUserConnectUI();
+                    if (onConnectComplete) onConnectComplete(newUserInfo);
+                }
             } catch (error) {
-                alert('再送信に失敗しました: ' + error.message);
+                if (connectMsg) connectMsg.textContent = error.message;
             } finally {
-                loginResendBtn.disabled = false;
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect';
             }
         });
     }
 
-    // 登録ダイアログ - 登録ボタン
-    const registerSubmitBtn = document.getElementById('registerSubmitBtn');
-    if (registerSubmitBtn) {
-        registerSubmitBtn.addEventListener('click', async () => {
-            const username = document.getElementById('registerUsernameInput')?.value?.trim();
-            const displayName = document.getElementById('registerDisplayNameInput')?.value?.trim();
-            const errorMsg = document.getElementById('registerErrorMsg');
-
-            if (errorMsg) errorMsg.textContent = '';
-            registerSubmitBtn.disabled = true;
-            registerSubmitBtn.textContent = 'Registering...';
-            try {
-                const userInfo = await registerUser(username, displayName);
-                closeRegisterDialog();
-                if (onRegisterComplete) onRegisterComplete(userInfo);
-            } catch (error) {
-                if (errorMsg) errorMsg.textContent = error.message;
-                registerSubmitBtn.disabled = false;
-                registerSubmitBtn.textContent = 'Register';
-            }
+    // Disconnectボタン
+    const disconnectBtn = document.getElementById('userDisconnectBtn');
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', () => {
+            state.setCurrentUserInfo(null);
+            localStorage.removeItem(USERNAME_KEY);
+            updateUserConnectUI();
         });
     }
 }

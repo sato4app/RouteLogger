@@ -2,7 +2,7 @@
 
 import * as state from './state.js';
 import { toggleVisibility } from './ui-common.js';
-import { signOutUser } from './auth.js';
+import { updateUserConnectUI } from './ui-auth.js';
 
 let clockInterval = null;
 
@@ -39,29 +39,18 @@ function updateClock() {
 }
 
 /**
- * ユーザー情報セクションの表示を更新
+ * ユーザー接続UIを更新（ui-auth.jsに委譲）
  */
 export function updateSettingsUserInfo() {
-    const authSection = document.getElementById('authSettingSection');
-    const usernameEl = document.getElementById('settingsUsernameDisplay');
-    const emailEl = document.getElementById('settingsEmailDisplay');
-    if (!authSection) return;
-
-    if (state.currentUserInfo) {
-        authSection.classList.remove('hidden');
-        if (usernameEl) usernameEl.textContent = `@${state.currentUserInfo.username}`;
-        if (emailEl) emailEl.textContent = state.currentUserInfo.email;
-    } else {
-        authSection.classList.add('hidden');
-    }
+    updateUserConnectUI();
 }
 
 /**
  * 設定ダイアログを表示
  */
 export function showSettingsDialog() {
-    // ユーザー情報を更新
-    updateSettingsUserInfo();
+    // ユーザー接続UIを更新
+    updateUserConnectUI();
 
     // 現在の設定値をUIに反映
     const showClockToggle = document.getElementById('showClockToggle');
@@ -72,6 +61,11 @@ export function showSettingsDialog() {
     const useFirebaseToggle = document.getElementById('useFirebaseToggle');
     if (useFirebaseToggle) {
         useFirebaseToggle.checked = state.isFirebaseEnabled;
+    }
+
+    const userConnectSection = document.getElementById('userConnectSection');
+    if (userConnectSection) {
+        userConnectSection.classList.toggle('hidden', !state.isFirebaseEnabled);
     }
 
     const showFacingToggle = document.getElementById('showFacingToggle');
@@ -129,6 +123,14 @@ export function initSettings() {
         useFirebaseToggle.addEventListener('change', (e) => {
             state.setIsFirebaseEnabled(e.target.checked);
             localStorage.setItem('routeLogger_useFirebase', e.target.checked);
+            const userConnectSection = document.getElementById('userConnectSection');
+            if (userConnectSection) {
+                userConnectSection.classList.toggle('hidden', !e.target.checked);
+            }
+            if (!e.target.checked) {
+                state.setCurrentUserInfo(null);
+                updateUserConnectUI();
+            }
         });
     }
     const savedFirebaseSetting = localStorage.getItem('routeLogger_useFirebase');
@@ -162,18 +164,5 @@ export function initSettings() {
         state.setIsMinooEmergencyEnabled(savedMinooEmergency === 'true');
     }
 
-    // Sign Out Button
-    const settingsSignOutBtn = document.getElementById('settingsSignOutBtn');
-    if (settingsSignOutBtn) {
-        settingsSignOutBtn.addEventListener('click', async () => {
-            if (!confirm('サインアウトしますか？')) return;
-            try {
-                await signOutUser();
-                state.setCurrentUserInfo(null);
-                updateSettingsUserInfo();
-            } catch (error) {
-                console.error('サインアウトエラー:', error);
-            }
-        });
-    }
+
 }
