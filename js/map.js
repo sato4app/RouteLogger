@@ -24,12 +24,13 @@ function formatDirection(direction) {
  * @param {number} heading - 方角（度）
  * @returns {L.DivIcon}
  */
-export function createArrowIcon(heading = 0) {
+export function createArrowIcon(heading = 0, color = '#000080') {
+    const stroke = color === '#000080' ? '#000050' : color;
     return L.divIcon({
         className: 'arrow-marker',
         html: `<div class="arrow" style="transform: rotate(${heading}deg)">
                 <svg width="30" height="30" viewBox="0 0 30 30">
-                    <path d="M15 5 L25 25 L15 20 L5 25 Z" fill="#000080" stroke="#000050" stroke-width="2"/>
+                    <path d="M15 5 L25 25 L15 20 L5 25 Z" fill="${color}" stroke="${stroke}" stroke-width="2"/>
                 </svg>
             </div>`,
         iconSize: [30, 30],
@@ -41,10 +42,10 @@ export function createArrowIcon(heading = 0) {
  * 開始地点用（四角）マーカーアイコンを作成
  * @returns {L.DivIcon}
  */
-export function createSquareIcon() {
+export function createSquareIcon(color = '#000080') {
     return L.divIcon({
         className: 'square-marker',
-        html: `<div style="width: 14px; height: 14px; background-color: #000080; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+        html: `<div style="width: 14px; height: 14px; background-color: ${color}; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9] // Center
     });
@@ -54,10 +55,11 @@ export function createSquareIcon() {
  * 写真マーカーアイコンを作成
  * @returns {L.DivIcon}
  */
-export function createPhotoIcon() {
+export function createPhotoIcon(color = null) {
+    const style = color ? ` style="background-color:${color}; border-color:${color};"` : '';
     return L.divIcon({
         className: 'photo-marker',
-        html: `<div class="photo-marker-circle"></div>`,
+        html: `<div class="photo-marker-circle"${style}></div>`,
         iconSize: [12, 12],
         iconAnchor: [6, 6]
     });
@@ -133,7 +135,7 @@ export async function initMap() {
  * 写真マーカーを地図上に表示
  * @param {Function} onMarkerClick - マーカークリック時のコールバック
  */
-export async function displayPhotoMarkers(onMarkerClick) {
+export async function displayPhotoMarkers(onMarkerClick, color = null) {
     try {
         // 既存のマーカーをクリア
         state.photoMarkers.forEach(marker => state.map.removeLayer(marker));
@@ -145,7 +147,7 @@ export async function displayPhotoMarkers(onMarkerClick) {
         let markerCount = 0;
         allPhotos.forEach((photo, index) => {
             if (photo.location && photo.location.lat && photo.location.lng) {
-                const photoIcon = createPhotoIcon();
+                const photoIcon = createPhotoIcon(color);
                 const dirFmt = formatDirection(photo.direction);
                 const directionText = dirFmt ? ` - ${dirFmt}` : '';
                 const marker = L.marker([photo.location.lat, photo.location.lng], {
@@ -180,7 +182,7 @@ export async function displayPhotoMarkers(onMarkerClick) {
 export function clearMapData(options = { keepExternal: false }) {
     if (state.trackingPath) {
         state.trackingPath.setLatLngs([]);
-
+        state.trackingPath.setStyle({ color: '#000080' });
     }
 
     state.photoMarkers.forEach(marker => state.map.removeLayer(marker));
@@ -267,8 +269,8 @@ export function removePhotoMarker(photoId) {
  * @param {number} lat - 緯度
  * @param {number} lng - 経度
  */
-export function addStartMarker(lat, lng) {
-    const icon = createSquareIcon();
+export function addStartMarker(lat, lng, color) {
+    const icon = createSquareIcon(color);
     const marker = L.marker([lat, lng], { icon: icon, title: 'Start Point', zIndexOffset: 1000 }).addTo(state.map);
     state.addRouteMarker(marker);
 }
@@ -279,8 +281,8 @@ export function addStartMarker(lat, lng) {
  * @param {number} lng - 経度
  * @param {number} heading - 方角
  */
-export function addEndMarker(lat, lng, heading) {
-    const arrowIcon = createArrowIcon(heading);
+export function addEndMarker(lat, lng, heading, color) {
+    const arrowIcon = createArrowIcon(heading, color);
     const marker = L.marker([lat, lng], { icon: arrowIcon, title: 'End Point', zIndexOffset: 1000 }).addTo(state.map);
     state.addRouteMarker(marker);
 }
@@ -464,7 +466,7 @@ export function clearEmergencyPoints() {
  * 全てのトラックデータを表示
  * @param {Array} tracks - トラックデータの配列
  */
-export function displayAllTracks(tracks) {
+export function displayAllTracks(tracks, color = null) {
     if (!state.map || !tracks || !state.trackingPath) return;
 
     const allPoints = [];
@@ -476,5 +478,6 @@ export function displayAllTracks(tracks) {
 
     if (allPoints.length > 0) {
         state.trackingPath.setLatLngs(allPoints);
+        if (color) state.trackingPath.setStyle({ color });
     }
 }

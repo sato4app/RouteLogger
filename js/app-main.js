@@ -52,18 +52,22 @@ async function initApp() {
         await displayEmergencyPoints();
     }
 
+    // ロード済みデータフラグ確認（KMZインポート後のリロード時はマゼンタ表示）
+    const isLoadedData = localStorage.getItem('routeLogger_loadedData') === 'true';
+    const loadedColor = isLoadedData ? '#FF00FF' : null;
+
     // トラックデータ表示
     try {
         const allTracks = await getAllTracks();
         if (allTracks && allTracks.length > 0) {
-            displayAllTracks(allTracks);
+            displayAllTracks(allTracks, loadedColor);
         }
     } catch (e) {
         console.error('トラックデータ表示エラー:', e);
     }
 
     // 写真マーカー表示
-    await displayPhotoMarkers(showPhotoFromMarker);
+    await displayPhotoMarkers(showPhotoFromMarker, loadedColor);
 
     // イベントリスナー設定
     setupEventListeners();
@@ -339,6 +343,7 @@ function setupEventListeners() {
                                     delete photo.id;
                                     await savePhoto(photo);
                                 }
+                                localStorage.setItem('routeLogger_loadedData', 'true');
                                 alert(`読み込み完了: ${file.name}\nページをリロードします。`);
                                 location.reload();
                             }

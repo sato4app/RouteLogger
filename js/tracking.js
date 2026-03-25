@@ -269,7 +269,7 @@ export async function startTracking() {
             if (hasData) {
                 clearMapData({ keepExternal: true });
                 await clearRouteLogData();
-
+                localStorage.removeItem('routeLogger_loadedData');
             }
         } else if (result === 'append') {
 

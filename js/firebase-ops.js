@@ -192,7 +192,7 @@ export async function loadDocument(doc, loadPhotos = true) {
             await restorePhotos(data.photos, state.db);
         }
 
-        await displayPhotoMarkers(showPhotoFromMarker);
+        await displayPhotoMarkers(showPhotoFromMarker, '#FF00FF');
 
         // Saveボタンを無効化
         document.getElementById('dataSaveBtn').disabled = true;
@@ -366,15 +366,16 @@ async function restoreTracks(tracks, db) {
     }
 
     if (allPoints.length > 0) {
-        // パス描画
+        // パス描画（マゼンタ）
         state.trackingPath.setLatLngs(allPoints);
+        state.trackingPath.setStyle({ color: '#FF00FF' });
         state.map.setView(allPoints[0], 15);
 
-        // 開始地点マーカー
+        // 開始地点マーカー（マゼンタ）
         const startPoint = allPoints[0];
-        addStartMarker(startPoint[0], startPoint[1]);
+        addStartMarker(startPoint[0], startPoint[1], '#FF00FF');
 
-        // 終了地点（現在地点）マーカー
+        // 終了地点（現在地点）マーカー（マゼンタ）
         const endPoint = allPoints[allPoints.length - 1];
 
         // 方角計算
@@ -383,7 +384,7 @@ async function restoreTracks(tracks, db) {
         const heading = calculateHeading(endPointObj, historyPointsObj);
 
         removeCurrentMarker();
-        addEndMarker(endPoint[0], endPoint[1], heading);
+        addEndMarker(endPoint[0], endPoint[1], heading, '#FF00FF');
     }
 }
 
