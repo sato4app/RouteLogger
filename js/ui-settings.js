@@ -1,6 +1,7 @@
 // RouteLogger - Settings & Clock UI
 
 import * as state from './state.js';
+import { DEFAULT_PHOTO_RESOLUTION_LEVEL, DEFAULT_PHOTO_QUALITY, DEFAULT_THUMBNAIL_SIZE } from './config.js';
 import { toggleVisibility } from './ui-common.js';
 import { checkAndUpdateUserStatus } from './ui-auth.js';
 
@@ -79,19 +80,6 @@ export function showSettingsDialog() {
     if (minooEmergencyToggle) {
         minooEmergencyToggle.checked = state.isMinooEmergencyEnabled;
     }
-
-    const photoResolutionSlider = document.getElementById('photoResolutionSlider');
-    if (photoResolutionSlider) photoResolutionSlider.value = state.photoResolutionLevel;
-
-    const photoQualitySlider = document.getElementById('photoQualitySlider');
-    const photoQualityInput  = document.getElementById('photoQualityInput');
-    if (photoQualitySlider) photoQualitySlider.value = state.photoQuality;
-    if (photoQualityInput)  photoQualityInput.value  = state.photoQuality;
-
-    const thumbnailSizeSlider = document.getElementById('thumbnailSizeSlider');
-    const thumbnailSizeInput  = document.getElementById('thumbnailSizeInput');
-    if (thumbnailSizeSlider) thumbnailSizeSlider.value = state.thumbnailSize;
-    if (thumbnailSizeInput)  thumbnailSizeInput.value  = state.thumbnailSize;
 
     toggleVisibility('settingsDialog', true);
 }
@@ -179,54 +167,105 @@ export function initSettings() {
         state.setIsMinooEmergencyEnabled(savedMinooEmergency === 'true');
     }
 
-    // JPEG画像品質スライダー
-    const photoQualitySlider = document.getElementById('photoQualitySlider');
-    const photoQualityInput  = document.getElementById('photoQualityInput');
-    function syncQuality(value) {
-        const v = Math.min(80, Math.max(60, Math.round(value / 10) * 10));
-        state.setPhotoQuality(v);
-        localStorage.setItem('routeLogger_photoQuality', v);
-        if (photoQualitySlider) photoQualitySlider.value = v;
-        if (photoQualityInput)  photoQualityInput.value  = v;
-    }
-    if (photoQualitySlider) photoQualitySlider.addEventListener('input', (e) => syncQuality(parseInt(e.target.value)));
-    if (photoQualityInput)  photoQualityInput.addEventListener('change', (e) => syncQuality(parseInt(e.target.value)));
-    const savedQuality = localStorage.getItem('routeLogger_photoQuality');
-    if (savedQuality !== null) syncQuality(parseInt(savedQuality));
-
-    // サムネールサイズスライダー
-    const thumbnailSizeSlider = document.getElementById('thumbnailSizeSlider');
-    const thumbnailSizeInput  = document.getElementById('thumbnailSizeInput');
-    function syncThumbnail(value) {
-        const v = Math.min(320, Math.max(80, Math.round(value / 40) * 40));
-        state.setThumbnailSize(v);
-        localStorage.setItem('routeLogger_thumbnailSize', v);
-        if (thumbnailSizeSlider) thumbnailSizeSlider.value = v;
-        if (thumbnailSizeInput)  thumbnailSizeInput.value  = v;
-    }
-    if (thumbnailSizeSlider) thumbnailSizeSlider.addEventListener('input', (e) => syncThumbnail(parseInt(e.target.value)));
-    if (thumbnailSizeInput)  thumbnailSizeInput.addEventListener('change', (e) => syncThumbnail(parseInt(e.target.value)));
-    const savedThumbnail = localStorage.getItem('routeLogger_thumbnailSize');
-    if (savedThumbnail !== null) syncThumbnail(parseInt(savedThumbnail));
-
-    // 写真解像度スライダー
+    // ── 画像設定パネル ──────────────────────────────────────────────────────────
     const resolutionLabels = ['720×1280px（高）', '360×640px（中）', '180×320px（低）'];
     const photoResolutionSlider = document.getElementById('photoResolutionSlider');
-    const photoResolutionLabel = document.getElementById('photoResolutionLabel');
+    const photoResolutionLabel  = document.getElementById('photoResolutionLabel');
+    const photoQualitySlider    = document.getElementById('photoQualitySlider');
+    const photoQualityInput     = document.getElementById('photoQualityInput');
+    const thumbnailSizeSlider   = document.getElementById('thumbnailSizeSlider');
+    const thumbnailSizeInput    = document.getElementById('thumbnailSizeInput');
+
+    // パネル内スライダーのUI同期（stateには反映しない）
     if (photoResolutionSlider) {
         photoResolutionSlider.addEventListener('input', (e) => {
-            const level = parseInt(e.target.value);
-            state.setPhotoResolutionLevel(level);
-            localStorage.setItem('routeLogger_photoResolution', level);
-            if (photoResolutionLabel) photoResolutionLabel.textContent = resolutionLabels[level];
+            if (photoResolutionLabel) photoResolutionLabel.textContent = resolutionLabels[parseInt(e.target.value)];
         });
     }
-    const savedResolution = localStorage.getItem('routeLogger_photoResolution');
-    if (savedResolution !== null) {
-        const level = parseInt(savedResolution);
-        state.setPhotoResolutionLevel(level);
-        if (photoResolutionSlider) photoResolutionSlider.value = level;
-        if (photoResolutionLabel) photoResolutionLabel.textContent = resolutionLabels[level];
+    if (photoQualitySlider) {
+        photoQualitySlider.addEventListener('input', (e) => {
+            if (photoQualityInput) photoQualityInput.value = e.target.value;
+        });
     }
+    if (photoQualityInput) {
+        photoQualityInput.addEventListener('change', (e) => {
+            const v = Math.min(80, Math.max(60, Math.round(parseInt(e.target.value) / 10) * 10));
+            photoQualityInput.value = v;
+            if (photoQualitySlider) photoQualitySlider.value = v;
+        });
+    }
+    if (thumbnailSizeSlider) {
+        thumbnailSizeSlider.addEventListener('input', (e) => {
+            if (thumbnailSizeInput) thumbnailSizeInput.value = e.target.value;
+        });
+    }
+    if (thumbnailSizeInput) {
+        thumbnailSizeInput.addEventListener('change', (e) => {
+            const v = Math.min(320, Math.max(80, Math.round(parseInt(e.target.value) / 40) * 40));
+            thumbnailSizeInput.value = v;
+            if (thumbnailSizeSlider) thumbnailSizeSlider.value = v;
+        });
+    }
+
+    // パネルを開く: 現在のstateをスライダーに反映
+    function openImageSettingsPanel() {
+        if (photoResolutionSlider) photoResolutionSlider.value = state.photoResolutionLevel;
+        if (photoResolutionLabel)  photoResolutionLabel.textContent = resolutionLabels[state.photoResolutionLevel];
+        if (photoQualitySlider)    photoQualitySlider.value = state.photoQuality;
+        if (photoQualityInput)     photoQualityInput.value  = state.photoQuality;
+        if (thumbnailSizeSlider)   thumbnailSizeSlider.value = state.thumbnailSize;
+        if (thumbnailSizeInput)    thumbnailSizeInput.value  = state.thumbnailSize;
+        const section = document.getElementById('imageSettingsSection');
+        if (section) section.classList.remove('hidden');
+    }
+
+    // パネルを閉じる
+    function closeImageSettingsPanel() {
+        const section = document.getElementById('imageSettingsSection');
+        if (section) section.classList.add('hidden');
+    }
+
+    // スライダー値をstateとlocalStorageに確定保存
+    function applyImageSettings() {
+        const level = parseInt(photoResolutionSlider?.value ?? state.photoResolutionLevel);
+        const quality = parseInt(photoQualitySlider?.value ?? state.photoQuality);
+        const thumb = parseInt(thumbnailSizeSlider?.value ?? state.thumbnailSize);
+        state.setPhotoResolutionLevel(level);
+        state.setPhotoQuality(quality);
+        state.setThumbnailSize(thumb);
+        localStorage.setItem('routeLogger_photoResolution', level);
+        localStorage.setItem('routeLogger_photoQuality', quality);
+        localStorage.setItem('routeLogger_thumbnailSize', thumb);
+    }
+
+    // 規定値をスライダーに反映（stateには反映しない）
+    function resetToDefaults() {
+        if (photoResolutionSlider) photoResolutionSlider.value = DEFAULT_PHOTO_RESOLUTION_LEVEL;
+        if (photoResolutionLabel)  photoResolutionLabel.textContent = resolutionLabels[DEFAULT_PHOTO_RESOLUTION_LEVEL];
+        if (photoQualitySlider)    photoQualitySlider.value = DEFAULT_PHOTO_QUALITY;
+        if (photoQualityInput)     photoQualityInput.value  = DEFAULT_PHOTO_QUALITY;
+        if (thumbnailSizeSlider)   thumbnailSizeSlider.value = DEFAULT_THUMBNAIL_SIZE;
+        if (thumbnailSizeInput)    thumbnailSizeInput.value  = DEFAULT_THUMBNAIL_SIZE;
+    }
+
+    const imageSettingsBtn     = document.getElementById('imageSettingsBtn');
+    const imageSettingsSaveBtn = document.getElementById('imageSettingsSaveBtn');
+    const imageSettingsDefaultBtn = document.getElementById('imageSettingsDefaultBtn');
+    const imageSettingsCancelBtn  = document.getElementById('imageSettingsCancelBtn');
+
+    if (imageSettingsBtn)     imageSettingsBtn.addEventListener('click', openImageSettingsPanel);
+    if (imageSettingsSaveBtn) imageSettingsSaveBtn.addEventListener('click', () => { applyImageSettings(); closeImageSettingsPanel(); });
+    if (imageSettingsDefaultBtn) imageSettingsDefaultBtn.addEventListener('click', resetToDefaults);
+    if (imageSettingsCancelBtn)  imageSettingsCancelBtn.addEventListener('click', closeImageSettingsPanel);
+
+    // 起動時: localStorageの保存値をstateに反映
+    const savedResolution = localStorage.getItem('routeLogger_photoResolution');
+    if (savedResolution !== null) state.setPhotoResolutionLevel(parseInt(savedResolution));
+
+    const savedQuality = localStorage.getItem('routeLogger_photoQuality');
+    if (savedQuality !== null) state.setPhotoQuality(parseInt(savedQuality));
+
+    const savedThumbnail = localStorage.getItem('routeLogger_thumbnailSize');
+    if (savedThumbnail !== null) state.setThumbnailSize(parseInt(savedThumbnail));
 
 }

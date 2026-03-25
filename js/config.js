@@ -21,12 +21,18 @@ export const GPS_RECORD_INTERVAL_SEC = 60;  // 記録間隔（秒）
 export const GPS_RECORD_DISTANCE_M = 20;    // 記録距離（メートル）
 
 // 写真解像度
-export const PHOTO_WIDTH = 720;
-export const PHOTO_HEIGHT = 1280;
-export const PHOTO_QUALITY = 0.6;
+export const PHOTO_WIDTH = 360;
+export const PHOTO_HEIGHT = 640;
+export const PHOTO_QUALITY = 0.7;
+
+// 画像設定の規定値
+export const DEFAULT_PHOTO_RESOLUTION_LEVEL = 1; // 360×640px（中）
+export const DEFAULT_PHOTO_QUALITY = 70;          // 70%
+export const DEFAULT_THUMBNAIL_SIZE = 160;        // 160px
 
 // 地図タイル設定
 export const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 export const GSI_ATTRIBUTION = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>';
-export const MAP_MAX_ZOOM = 18;
+export const MAP_MAX_NATIVE_ZOOM = 18;
+export const MAP_MAX_ZOOM = 20;
 export const MAP_MIN_ZOOM = 5;

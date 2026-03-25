@@ -79,7 +79,7 @@ export let isMinooEmergencyEnabled = false;
 export function setIsMinooEmergencyEnabled(value) { isMinooEmergencyEnabled = value; }
 
 // 写真解像度: 0=720x1280, 1=360x640, 2=180x320
-export let photoResolutionLevel = 0;
+export let photoResolutionLevel = 1;
 export function setPhotoResolutionLevel(value) { photoResolutionLevel = value; }
 export function getPhotoSize() {
     const sizes = [
@@ -91,11 +91,11 @@ export function getPhotoSize() {
 }
 
 // JPEG品質: 60, 70, 80 (整数値、使用時に /100)
-export let photoQuality = 60;
+export let photoQuality = 70;
 export function setPhotoQuality(value) { photoQuality = value; }
 
 // サムネールサイズ: 80～320 (px、正方形)
-export let thumbnailSize = 320;
+export let thumbnailSize = 160;
 export function setThumbnailSize(value) { thumbnailSize = value; }
 
 // 配列操作

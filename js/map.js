@@ -1,6 +1,6 @@
 // RouteLogger - 地図関連
 
-import { DEFAULT_POSITION, GSI_TILE_URL, GSI_ATTRIBUTION, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config.js';
+import { DEFAULT_POSITION, GSI_TILE_URL, GSI_ATTRIBUTION, MAP_MAX_NATIVE_ZOOM, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config.js';
 import * as state from './state.js';
 import { getLastPosition, getAllPhotos, getExternalPhoto } from './db.js';
 
@@ -117,6 +117,7 @@ export async function initMap() {
 
     L.tileLayer(GSI_TILE_URL, {
         attribution: GSI_ATTRIBUTION,
+        maxNativeZoom: MAP_MAX_NATIVE_ZOOM,
         maxZoom: MAP_MAX_ZOOM,
         minZoom: MAP_MIN_ZOOM
     }).addTo(mapInstance);

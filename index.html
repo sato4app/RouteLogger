@@ -313,41 +313,56 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">
-                        <div class="setting-title">写真解像度</div>
-                        <div class="setting-desc" id="photoResolutionLabel">720×1280px（高）</div>
+                        <div class="setting-title">画像設定</div>
+                        <div class="setting-desc">写真解像度・品質・サムネールサイズ</div>
                     </div>
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:2px; min-width:80px;">
-                        <input type="range" id="photoResolutionSlider" min="0" max="2" step="1" value="0"
-                            style="width:80px; accent-color:#4a90d9;">
-                        <div style="display:flex; justify-content:space-between; width:80px; font-size:0.7em; color:#888;">
-                            <span>高</span><span>中</span><span>低</span>
+                    <button id="imageSettingsBtn" class="secondary-btn" style="padding:6px 14px; white-space:nowrap;">画像設定</button>
+                </div>
+                <!-- 画像設定パネル（展開） -->
+                <div id="imageSettingsSection" class="hidden" style="padding: 8px 16px 4px;">
+                    <div class="setting-item" style="border:none; padding:4px 0;">
+                        <div class="setting-label">
+                            <div class="setting-title">写真解像度</div>
+                            <div class="setting-desc" id="photoResolutionLabel">360×640px（中）</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:2px; min-width:80px;">
+                            <input type="range" id="photoResolutionSlider" min="0" max="2" step="1" value="1"
+                                style="width:80px; accent-color:#4a90d9;">
+                            <div style="display:flex; justify-content:space-between; width:80px; font-size:0.7em; color:#888;">
+                                <span>高</span><span>中</span><span>低</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">
-                        <div class="setting-title">JPEG画像品質</div>
-                        <div class="setting-desc">撮影写真の圧縮品質</div>
+                    <div class="setting-item" style="border:none; padding:4px 0;">
+                        <div class="setting-label">
+                            <div class="setting-title">JPEG画像品質</div>
+                            <div class="setting-desc">撮影写真の圧縮品質</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <input type="number" id="photoQualityInput" min="60" max="80" step="10" value="70"
+                                style="width:42px; text-align:center; font-size:0.9em;">
+                            <span style="font-size:0.85em; color:#888;">%</span>
+                            <input type="range" id="photoQualitySlider" min="60" max="80" step="10" value="70"
+                                style="width:70px; accent-color:#4a90d9;">
+                        </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <input type="number" id="photoQualityInput" min="60" max="80" step="10" value="60"
-                            style="width:42px; text-align:center; font-size:0.9em;">
-                        <span style="font-size:0.85em; color:#888;">%</span>
-                        <input type="range" id="photoQualitySlider" min="60" max="80" step="10" value="60"
-                            style="width:70px; accent-color:#4a90d9;">
+                    <div class="setting-item" style="border:none; padding:4px 0;">
+                        <div class="setting-label">
+                            <div class="setting-title">サムネール画像サイズ</div>
+                            <div class="setting-desc">KMZに埋め込む正方形サムネール</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <input type="number" id="thumbnailSizeInput" min="80" max="320" step="40" value="160"
+                                style="width:42px; text-align:center; font-size:0.9em;">
+                            <span style="font-size:0.85em; color:#888;">px</span>
+                            <input type="range" id="thumbnailSizeSlider" min="80" max="320" step="40" value="160"
+                                style="width:70px; accent-color:#4a90d9;">
+                        </div>
                     </div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-label">
-                        <div class="setting-title">サムネール画像サイズ</div>
-                        <div class="setting-desc">KMZに埋め込む正方形サムネール</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <input type="number" id="thumbnailSizeInput" min="80" max="320" step="40" value="320"
-                            style="width:42px; text-align:center; font-size:0.9em;">
-                        <span style="font-size:0.85em; color:#888;">px</span>
-                        <input type="range" id="thumbnailSizeSlider" min="80" max="320" step="40" value="320"
-                            style="width:70px; accent-color:#4a90d9;">
+                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                        <button id="imageSettingsSaveBtn" class="primary-btn" style="padding:6px 14px;">設定</button>
+                        <button id="imageSettingsDefaultBtn" class="secondary-btn" style="padding:6px 14px;">規定値</button>
+                        <button id="imageSettingsCancelBtn" class="secondary-btn" style="padding:6px 14px;">キャンセル</button>
                     </div>
                 </div>
                 <div class="setting-item">
