@@ -214,9 +214,7 @@ exports.generateKmzAndSendEmail = functions
         }
 
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: process.env.SMTP_SECURE === 'true',
+            service: 'gmail',
             auth: {
                 user: smtpUser,
                 pass: smtpPass,
@@ -242,7 +240,7 @@ exports.generateKmzAndSendEmail = functions
                     `記録点数: ${trackStats}件`,
                     `写真: ${photoCount}件`,
                     '',
-                    '添付の .kmz ファイルを Google Earth などで開いてください。',
+                    '添付の .kmz ファイルは RouteLogger で読み込み可能です。',
                 ].filter(Boolean).join('\n'),
                 attachments: [
                     {
@@ -262,4 +260,90 @@ exports.generateKmzAndSendEmail = functions
 
         functions.logger.info(`KMZ送信完了: ${projectName} → ${recipientEmail}`);
         return { success: true, sentTo: recipientEmail };
+    });
+
+// ─── KMZ を Storage に保存する関数 ────────────────────────────────────────────
+
+/**
+ * 指定したプロジェクト（または全プロジェクト）の KMZ を生成して Storage に保存する。
+ * コンソールから呼び出す用途を想定。
+ *
+ * 単一: generateKmzToStorage({ projectName: 'xxx' })
+ * 全件: generateKmzToStorage({ all: true })
+ */
+exports.generateKmzToStorage = functions
+    .region('asia-northeast1')
+    .runWith({ timeoutSeconds: 540, memory: '512MB' })
+    .https.onCall(async (data, context) => {
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
+        }
+
+        const bucket = admin.storage().bucket();
+
+        async function processOne(projectName) {
+            const docSnap = await admin.firestore().collection('tracks').doc(projectName).get();
+            if (!docSnap.exists) {
+                functions.logger.warn(`スキップ: "${projectName}" が見つかりません`);
+                return null;
+            }
+            const trackData = docSnap.data();
+            const photos = trackData.photos || [];
+
+            const zip = new JSZip();
+            const imagesFolder = zip.folder('images');
+            const photoFilenames = new Array(photos.length).fill(null);
+
+            for (let i = 0; i < photos.length; i++) {
+                const photo = photos[i];
+                if (!photo.url) continue;
+                const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
+                try {
+                    const buffer = await downloadBuffer(photo.url);
+                    const thumbnail = await resizeTo320(buffer);
+                    imagesFolder.file(filename, thumbnail);
+                    photoFilenames[i] = filename;
+                } catch (e) {
+                    functions.logger.warn(`写真 ${i + 1} のサムネール作成に失敗: ${e.message}`);
+                }
+            }
+
+            const kmlContent = buildKml(projectName, trackData, photoFilenames);
+            zip.file('doc.kml', kmlContent);
+
+            const kmzBuffer = await zip.generateAsync({
+                type: 'nodebuffer',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 6 },
+            });
+
+            const storagePath = `kmz/${projectName}.kmz`;
+            const file = bucket.file(storagePath);
+            await file.save(kmzBuffer, {
+                metadata: { contentType: 'application/vnd.google-earth.kmz' },
+            });
+            await file.makePublic();
+            const url = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+            functions.logger.info(`KMZ保存完了: ${storagePath}`);
+            return { projectName, url };
+        }
+
+        if (data.all) {
+            const snapshot = await admin.firestore().collection('tracks').get();
+            const results = [];
+            for (const doc of snapshot.docs) {
+                const result = await processOne(doc.id);
+                if (result) results.push(result);
+            }
+            return { success: true, results };
+        } else {
+            if (!data.projectName) {
+                throw new functions.https.HttpsError('invalid-argument', 'projectName または all:true が必要です');
+            }
+            const result = await processOne(data.projectName);
+            if (!result) {
+                throw new functions.https.HttpsError('not-found', `"${data.projectName}" が見つかりません`);
+            }
+            return { success: true, results: [result] };
+        }
     });

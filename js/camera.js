@@ -65,7 +65,7 @@ function stopCompassWatch() {
     _capturedCompassHeading = null;
 }
 
-import { PHOTO_WIDTH, PHOTO_HEIGHT, PHOTO_QUALITY } from './config.js';
+import { PHOTO_QUALITY } from './config.js';
 import * as state from './state.js';
 import { savePhoto, updatePhoto, getPhoto, deletePhoto } from './db.js';
 import { addPhotoMarkerToMap, removePhotoMarker } from './map.js';
@@ -291,6 +291,7 @@ export async function capturePhoto() {
     const srcHeight = cameraPreview.videoHeight;
 
     // アスペクト比を維持しながらリサイズ
+    const { width: PHOTO_WIDTH, height: PHOTO_HEIGHT } = state.getPhotoSize();
     const srcAspect = srcWidth / srcHeight;
     const targetAspect = PHOTO_WIDTH / PHOTO_HEIGHT;
 

@@ -78,6 +78,18 @@ export function setIsShowFacingButtons(value) { isShowFacingButtons = value; }
 export let isMinooEmergencyEnabled = false;
 export function setIsMinooEmergencyEnabled(value) { isMinooEmergencyEnabled = value; }
 
+// 写真解像度: 0=720x1280, 1=360x640, 2=180x320
+export let photoResolutionLevel = 0;
+export function setPhotoResolutionLevel(value) { photoResolutionLevel = value; }
+export function getPhotoSize() {
+    const sizes = [
+        { width: 720,  height: 1280 },
+        { width: 360,  height: 640  },
+        { width: 180,  height: 320  },
+    ];
+    return sizes[photoResolutionLevel] || sizes[0];
+}
+
 // 配列操作
 export function addPhotoMarker(marker) { photoMarkers.push(marker); }
 export function clearPhotoMarkers() { photoMarkers = []; }

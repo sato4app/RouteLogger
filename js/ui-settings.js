@@ -80,6 +80,11 @@ export function showSettingsDialog() {
         minooEmergencyToggle.checked = state.isMinooEmergencyEnabled;
     }
 
+    const photoResolutionSlider = document.getElementById('photoResolutionSlider');
+    if (photoResolutionSlider) {
+        photoResolutionSlider.value = state.photoResolutionLevel;
+    }
+
     toggleVisibility('settingsDialog', true);
 }
 
@@ -166,5 +171,24 @@ export function initSettings() {
         state.setIsMinooEmergencyEnabled(savedMinooEmergency === 'true');
     }
 
+    // 写真解像度スライダー
+    const resolutionLabels = ['720×1280px（高）', '360×640px（中）', '180×320px（低）'];
+    const photoResolutionSlider = document.getElementById('photoResolutionSlider');
+    const photoResolutionLabel = document.getElementById('photoResolutionLabel');
+    if (photoResolutionSlider) {
+        photoResolutionSlider.addEventListener('input', (e) => {
+            const level = parseInt(e.target.value);
+            state.setPhotoResolutionLevel(level);
+            localStorage.setItem('routeLogger_photoResolution', level);
+            if (photoResolutionLabel) photoResolutionLabel.textContent = resolutionLabels[level];
+        });
+    }
+    const savedResolution = localStorage.getItem('routeLogger_photoResolution');
+    if (savedResolution !== null) {
+        const level = parseInt(savedResolution);
+        state.setPhotoResolutionLevel(level);
+        if (photoResolutionSlider) photoResolutionSlider.value = level;
+        if (photoResolutionLabel) photoResolutionLabel.textContent = resolutionLabels[level];
+    }
 
 }
