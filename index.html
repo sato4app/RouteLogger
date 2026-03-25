@@ -339,7 +339,7 @@
                             <div class="setting-desc">撮影写真の圧縮品質</div>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <input type="number" id="photoQualityInput" min="60" max="80" step="10" value="70"
+                            <input type="text" id="photoQualityInput" value="70"
                                 style="width:42px; text-align:right; font-size:0.9em;">
                             <span style="font-size:0.85em; color:#888;">%</span>
                             <input type="range" id="photoQualitySlider" min="60" max="80" step="10" value="70"
@@ -352,14 +352,14 @@
                             <div class="setting-desc">KMZ中の正方形サムネール</div>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <input type="number" id="thumbnailSizeInput" min="80" max="320" step="40" value="160"
+                            <input type="text" id="thumbnailSizeInput" value="160"
                                 style="width:42px; text-align:right; font-size:0.9em;">
                             <span style="font-size:0.85em; color:#888;">px</span>
                             <input type="range" id="thumbnailSizeSlider" min="80" max="320" step="40" value="160"
                                 style="width:70px; accent-color:#4a90d9;">
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:flex-end;">
+                    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:flex-end; margin-right:-16px;">
                         <button id="imageSettingsSaveBtn" class="primary-btn" style="padding:6px 20px; flex:none;">設定</button>
                         <button id="imageSettingsDefaultBtn" class="secondary-btn" style="padding:6px 20px; flex:none;">規定値</button>
                         <button id="imageSettingsCancelBtn" class="secondary-btn" style="padding:6px 20px; flex:none;">キャンセル</button>
