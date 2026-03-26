@@ -33,7 +33,7 @@ function downloadBuffer(url) {
 async function resizeToSquare(buffer, size = 320) {
     return sharp(buffer)
         .resize({ width: size, height: size, fit: 'cover' })
-        .jpeg({ quality: 80 })
+        .jpeg({ quality: 95 })
         .toBuffer();
 }
 
