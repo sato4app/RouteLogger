@@ -309,20 +309,18 @@ export function displayExternalGeoJSON(geoJson) {
         const layer = L.geoJSON(geoJson, {
             // ポイントデータの表示スタイル設定
             pointToLayer: function (feature, latlng) {
-                // 濃い緑の円形マーカー
                 return L.circleMarker(latlng, {
                     radius: 8,
-                    fillColor: "#006400", // 濃い緑
-                    color: "#006400",     // 枠も濃い緑
+                    fillColor: "#FF00FF",
+                    color: "#FF00FF",
                     weight: 2,
                     opacity: 1,
                     fillOpacity: 0.8
                 });
             },
             style: function (feature) {
-                // デフォルトスタイル: オレンジ色で少し太め (LineStringやPolygon用)
                 return {
-                    color: '#FF6D00',
+                    color: '#FF00FF',
                     weight: 4,
                     opacity: 0.7,
                     fillOpacity: 0.2
