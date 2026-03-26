@@ -207,6 +207,12 @@
         </div>
     </div>
 
+    <!-- Photo Lightbox -->
+    <div id="photoLightbox" class="photo-lightbox hidden" onclick="this.classList.add('hidden')">
+        <button class="lightbox-close-btn" onclick="event.stopPropagation();document.getElementById('photoLightbox').classList.add('hidden')">✕</button>
+        <img id="photoLightboxImg" src="" alt="" onclick="event.stopPropagation()">
+    </div>
+
     <!-- Stats Dialog -->
     <div id="statsDialog" class="modal-dialog hidden">
         <div class="modal-content">

@@ -4,6 +4,15 @@ import { DEFAULT_POSITION, GSI_TILE_URL, GSI_ATTRIBUTION, MAP_MAX_NATIVE_ZOOM, M
 import * as state from './state.js';
 import { getLastPosition, getAllPhotos, getExternalPhoto } from './db.js';
 
+/** ポップアップ内の外部リンク画像をlightboxで表示 */
+window._showPhotoLightbox = function(url) {
+    const lb = document.getElementById('photoLightbox');
+    const img = document.getElementById('photoLightboxImg');
+    if (!lb || !img) return;
+    img.src = url;
+    lb.classList.remove('hidden');
+};
+
 /**
  * 方向値を表示用文字列に変換
  * @param {number|string|null} direction
@@ -392,6 +401,17 @@ export function displayExternalGeoJSON(geoJson) {
                                     }
                                 }
                             }
+
+                            // http(s)リンクをlightboxボタンに変換
+                            Array.from(doc.querySelectorAll('a[href]')).forEach(link => {
+                                const href = link.getAttribute('href');
+                                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                                    const safe = href.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                                    link.setAttribute('onclick', `event.preventDefault();window._showPhotoLightbox('${safe}');`);
+                                    link.setAttribute('href', '#');
+                                    updated = true;
+                                }
+                            });
 
                             if (updated) {
                                 popup.setContent(doc.body.innerHTML);

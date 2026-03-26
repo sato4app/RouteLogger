@@ -743,6 +743,43 @@ body {
     z-index: 20;
 }
 
+/* Photo Lightbox (ポップアップ内リンクから開く原寸画像ビューア) */
+.photo-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+.photo-lightbox.hidden {
+    display: none;
+}
+.photo-lightbox img {
+    max-width: 95%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
+    cursor: default;
+}
+.lightbox-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10001;
+    line-height: 1;
+}
+
 .nav-btn {
     position: absolute;
     top: 50%;
