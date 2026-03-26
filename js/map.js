@@ -402,6 +402,13 @@ export function displayExternalGeoJSON(geoJson) {
                                 }
                             }
 
+                            // ポップアップ内の画像サイズを元サイズのまま表示（拡大しない）
+                            Array.from(doc.querySelectorAll('img')).forEach(img => {
+                                img.style.maxWidth = '160px';
+                                img.style.height = 'auto';
+                                updated = true;
+                            });
+
                             // http(s)リンクをlightboxボタンに変換
                             Array.from(doc.querySelectorAll('a[href]')).forEach(link => {
                                 const href = link.getAttribute('href');
