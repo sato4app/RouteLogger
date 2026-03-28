@@ -203,20 +203,13 @@ export async function showPhotoList() {
                 }
                 meta.appendChild(dirEl);
 
-                // Compass
+                // Compass（Firebase restore: photo.compass, ローカル: compassDirection/compassHeading から生成）
+                const compassStr = photo.compass ??
+                    ((photo.compassDirection != null || photo.compassHeading != null)
+                        ? `${photo.compassDirection ?? ''}${photo.compassHeading != null ? `（${photo.compassHeading}°）` : ''}`
+                        : null);
                 const compassEl = document.createElement('span');
-                if (photo.compassHeading != null || photo.compassDirection != null) {
-                    function get16Dir(deg) {
-                        if (deg == null) return '';
-                        const dirs = ['北', '北北東', '北東', '東北東', '東', '東南東', '南東', '南南東', '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西'];
-                        return dirs[Math.round(deg / 22.5) % 16];
-                    }
-                    const dirStr = photo.compassDirection || get16Dir(photo.compassHeading);
-                    const degStr = photo.compassHeading != null ? `（${photo.compassHeading}°）` : '';
-                    compassEl.textContent = `Compass: ${dirStr}${degStr}`;
-                } else {
-                    compassEl.textContent = 'Compass: null';
-                }
+                compassEl.textContent = `Compass: ${compassStr ?? 'null'}`;
                 meta.appendChild(compassEl);
 
                 // Memo
