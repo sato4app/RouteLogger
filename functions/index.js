@@ -48,7 +48,7 @@ function escapeXml(str) {
 
 // ─── KML 生成 ────────────────────────────────────────────────────────────────
 
-function buildKml(projectName, trackData, photoFilenames) {
+function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 320) {
     const photos = trackData.photos || [];
     const tracks = trackData.tracks || [];
 
@@ -76,9 +76,18 @@ function buildKml(projectName, trackData, photoFilenames) {
     photos.forEach((photo, i) => {
         if (!photo.location || photo.location.lat == null || photo.location.lng == null) return;
         const thumbFile = photoFilenames[i];
-        const ts = photo.timestamp ? new Date(photo.timestamp).toLocaleString('ja-JP') : '';
-        const compass = photo.compass || '';
-        const facing = photo.facing ? `向き: ${photo.facing}` : '';
+
+        // Timestamp: yyyy/MM/dd HH:mm (JST)
+        let tsText = 'null';
+        if (photo.timestamp != null) {
+            const jst = new Date(new Date(photo.timestamp).getTime() + 9 * 60 * 60 * 1000);
+            const yyyy = jst.getUTCFullYear();
+            const MM = String(jst.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(jst.getUTCDate()).padStart(2, '0');
+            const HH = String(jst.getUTCHours()).padStart(2, '0');
+            const mm = String(jst.getUTCMinutes()).padStart(2, '0');
+            tsText = `${yyyy}/${MM}/${dd} ${HH}:${mm}`;
+        }
 
         let desc = '';
         if (thumbFile) {
@@ -87,14 +96,16 @@ function buildKml(projectName, trackData, photoFilenames) {
         if (photo.url) {
             desc += `<a href="${escapeXml(photo.url)}">元の写真を表示</a><br>`;
         }
-        if (ts)      desc += `撮影時刻: ${ts}<br>`;
-        if (compass) desc += `方角: ${compass}<br>`;
-        if (facing)  desc += `${facing}<br>`;
-        if (photo.text) desc += `メモ: ${escapeXml(photo.text)}`;
+        desc += `Timestamp: ${tsText}<br>`;
+        desc += `Facing: ${photo.facing ?? 'null'}<br>`;
+        desc += `Direction: ${photo.direction != null ? photo.direction + '°' : 'null'}<br>`;
+        desc += `Compass: ${photo.compass ?? 'null'}<br>`;
+        desc += `Memo: ${photo.text ? escapeXml(photo.text) : 'null'}<br>`;
+        desc += `Size: ${thumbFile ? `${thumbnailSize}x${thumbnailSize}px` : 'null'}`;
 
         photoPlacemarks += `
     <Placemark>
-      <name>Photo ${i + 1}</name>
+      <name></name>
       <description><![CDATA[${desc}]]></description>
       <Point>
         <coordinates>${photo.location.lng},${photo.location.lat},0</coordinates>
@@ -194,7 +205,7 @@ exports.generateKmzAndSendEmail = functions
             }
         }
 
-        const kmlContent = buildKml(projectName, trackData, photoFilenames);
+        const kmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize);
         zip.file('doc.kml', kmlContent);
 
         const kmzBuffer = await zip.generateAsync({
@@ -309,7 +320,7 @@ exports.generateKmzToStorage = functions
                 }
             }
 
-            const kmlContent = buildKml(projectName, trackData, photoFilenames);
+            const kmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize);
             zip.file('doc.kml', kmlContent);
 
             const kmzBuffer = await zip.generateAsync({
