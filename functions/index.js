@@ -37,6 +37,39 @@ async function resizeToSquare(buffer, size = 320) {
         .toBuffer();
 }
 
+/** direction値（数値または旧文字列）を度数に変換 */
+function directionToDeg(direction) {
+    if (typeof direction === 'number') return direction;
+    if (direction === 'left') return -60;
+    if (direction === 'right') return 60;
+    return 0;
+}
+
+/** 正方形サムネールに方向バッジを合成して JPEG バッファを返す */
+async function addBadgeToThumbnail(buffer, size, direction) {
+    const arrowSize = size * 0.15;
+    const r = arrowSize * 0.55;
+    const cx = size / 2;
+    const cy = size - arrowSize * 1.5;
+    const arrowW = arrowSize * 0.5;
+    const arrowH = arrowSize * 0.6;
+    const lw = arrowSize * 0.12;
+    const deg = directionToDeg(direction);
+
+    const svg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="white" fill-opacity="0.9" stroke="black" stroke-opacity="0.3" stroke-width="${lw}"/>
+  <g transform="translate(${cx},${cy}) rotate(${deg})">
+    <line x1="0" y1="${arrowH / 2}" x2="0" y2="${-arrowH / 2}" stroke="#333333" stroke-width="${lw}" stroke-linecap="round"/>
+    <polyline points="${-arrowW / 2},${-arrowH / 4} 0,${-arrowH / 2} ${arrowW / 2},${-arrowH / 4}" fill="none" stroke="#333333" stroke-width="${lw}" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>`;
+
+    return sharp(buffer)
+        .composite([{ input: Buffer.from(svg), blend: 'over' }])
+        .jpeg({ quality: 95 })
+        .toBuffer();
+}
+
 /** XML 特殊文字をエスケープ */
 function escapeXml(str) {
     return String(str || '')
@@ -48,7 +81,7 @@ function escapeXml(str) {
 
 // ─── KML 生成 ────────────────────────────────────────────────────────────────
 
-function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 320) {
+function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160) {
     const photos = trackData.photos || [];
     const tracks = trackData.tracks || [];
 
@@ -157,7 +190,7 @@ exports.generateKmzAndSendEmail = functions
             throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
         }
 
-        const { projectName, thumbnailSize = 320 } = data;
+        const { projectName, thumbnailSize = 160 } = data;
         if (!projectName) {
             throw new functions.https.HttpsError('invalid-argument', 'projectName が必要です');
         }
@@ -197,7 +230,10 @@ exports.generateKmzAndSendEmail = functions
             const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
             try {
                 const buffer = await downloadBuffer(photo.url);
-                const thumbnail = await resizeToSquare(buffer, thumbnailSize);
+                const resized = await resizeToSquare(buffer, thumbnailSize);
+                const thumbnail = (photo.direction != null && photo.direction !== '')
+                    ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
+                    : resized;
                 imagesFolder.file(filename, thumbnail);
                 photoFilenames[i] = filename;
             } catch (e) {
@@ -312,7 +348,10 @@ exports.generateKmzToStorage = functions
                 const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
                 try {
                     const buffer = await downloadBuffer(photo.url);
-                    const thumbnail = await resizeToSquare(buffer, thumbnailSize);
+                    const resized = await resizeToSquare(buffer, thumbnailSize);
+                    const thumbnail = (photo.direction != null && photo.direction !== '')
+                        ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
+                        : resized;
                     imagesFolder.file(filename, thumbnail);
                     photoFilenames[i] = filename;
                 } catch (e) {

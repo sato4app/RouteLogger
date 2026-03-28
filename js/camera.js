@@ -105,10 +105,9 @@ export async function drawArrowStamp(base64Image, direction) {
             const centerX = img.width / 2;
             const bottomY = img.height - arrowSize * 1.5;
 
-            // カプセルのサイズ計算（テキスト無しで矢印のみ）
-            const paddingX = arrowSize * 0.4;
+            // 円形バッジのサイズ計算
             const boxHeight = arrowSize * 1.1;
-            const boxWidth = arrowSize + paddingX * 2;
+            const boxWidth = boxHeight;
             const boxX = centerX - boxWidth / 2;
             const boxY = bottomY - boxHeight / 2;
             const radius = boxHeight / 2;
