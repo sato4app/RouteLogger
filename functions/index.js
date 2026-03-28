@@ -7,6 +7,8 @@ const sharp = require('sharp');
 const nodemailer = require('nodemailer');
 const https = require('https');
 const http = require('http');
+const { google } = require('googleapis');
+const { Readable } = require('stream');
 
 admin.initializeApp();
 
@@ -79,9 +81,161 @@ function escapeXml(str) {
         .replace(/"/g, '&quot;');
 }
 
+// ─── Google Drive ユーティリティ ───────────────────────────────────────────────
+
+/**
+ * Google Drive クライアントを取得（Service Account の ADC を使用）
+ * functions/.env に GDRIVE_FOLDER_ID を設定して有効化
+ */
+async function getDriveClient() {
+    const auth = await google.auth.getClient({
+        scopes: ['https://www.googleapis.com/auth/drive'],
+    });
+    return google.drive({ version: 'v3', auth });
+}
+
+/**
+ * Drive に同名フォルダがあれば ID を返す、なければ作成して ID を返す
+ * @param {object} drive
+ * @param {string} parentId
+ * @param {string} name
+ * @returns {Promise<string>} フォルダID
+ */
+async function getOrCreateDriveFolder(drive, parentId, name) {
+    const escaped = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const res = await drive.files.list({
+        q: `name='${escaped}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`,
+        fields: 'files(id)',
+        spaces: 'drive',
+    });
+    if (res.data.files.length > 0) return res.data.files[0].id;
+    const folder = await drive.files.create({
+        requestBody: {
+            name,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentId],
+        },
+        fields: 'id',
+    });
+    return folder.data.id;
+}
+
+/**
+ * Drive にファイルをアップロードして公開設定にする
+ * @param {object} drive
+ * @param {string} folderId
+ * @param {string} filename
+ * @param {Buffer} buffer
+ * @param {string} mimeType
+ * @returns {Promise<{id:string, viewUrl:string}>}
+ */
+async function uploadFileToDrive(drive, folderId, filename, buffer, mimeType) {
+    const res = await drive.files.create({
+        requestBody: { name: filename, parents: [folderId] },
+        media: { mimeType, body: Readable.from(buffer) },
+        fields: 'id',
+    });
+    const fileId = res.data.id;
+    await drive.permissions.create({
+        fileId,
+        requestBody: { role: 'reader', type: 'anyone' },
+    });
+    return {
+        id: fileId,
+        viewUrl: `https://drive.google.com/file/d/${fileId}/view`,
+    };
+}
+
+/**
+ * 1プロジェクト分の写真・サムネール・KMZ を Drive にアップロードする共通処理
+ * generateKmzAndSendEmail と migrateRoutesToDrive で共用
+ *
+ * @param {object} drive - Drive クライアント
+ * @param {string} rootFolderId - 共有フォルダ ID (GDRIVE_FOLDER_ID)
+ * @param {string} projectName
+ * @param {object} trackData
+ * @param {number} thumbnailSize
+ * @param {Array<Buffer|null>} photoBuffers - ダウンロード済み写真バッファ（nullなら再ダウンロード）
+ * @param {Array<Buffer|null>} thumbnailBuffers - 生成済みサムネールバッファ（nullなら再生成）
+ * @param {Array<string|null>} photoFilenames
+ * @returns {Promise<{drivePhotoUrls: Array<string|null>, driveKmzBuffer: Buffer}>}
+ */
+async function uploadProjectToDrive(drive, rootFolderId, projectName, trackData, thumbnailSize, photoBuffers, thumbnailBuffers, photoFilenames) {
+    const photos = trackData.photos || [];
+
+    const projectFolderId = await getOrCreateDriveFolder(drive, rootFolderId, projectName);
+    const photosFolderId = await getOrCreateDriveFolder(drive, projectFolderId, 'photos');
+    const imagesFolderId = await getOrCreateDriveFolder(drive, projectFolderId, 'images');
+
+    const drivePhotoUrls = new Array(photos.length).fill(null);
+
+    for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        if (!photo.url && !photoBuffers[i]) continue;
+
+        try {
+            // バッファが未取得なら再ダウンロード
+            let buf = photoBuffers[i];
+            if (!buf && photo.url) {
+                buf = await downloadBuffer(photo.url);
+            }
+            if (!buf) continue;
+
+            // 写真を Drive にアップロード
+            const ts = new Date(photo.timestamp).getTime();
+            const photoResult = await uploadFileToDrive(drive, photosFolderId, `${ts}.jpg`, buf, 'image/jpeg');
+            drivePhotoUrls[i] = photoResult.viewUrl;
+
+            // サムネールが未生成なら生成
+            if (!thumbnailBuffers[i]) {
+                const resized = await resizeToSquare(buf, thumbnailSize);
+                thumbnailBuffers[i] = (photo.direction != null && photo.direction !== '')
+                    ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
+                    : resized;
+            }
+
+            // サムネールを Drive にアップロード
+            if (photoFilenames[i] && thumbnailBuffers[i]) {
+                await uploadFileToDrive(drive, imagesFolderId, photoFilenames[i], thumbnailBuffers[i], 'image/jpeg');
+            }
+        } catch (e) {
+            functions.logger.warn(`${projectName} 写真 ${i + 1} Drive処理失敗: ${e.message}`);
+        }
+    }
+
+    // Drive版KMZ生成（写真URLはDrive URLを使用）
+    const driveZip = new JSZip();
+    const driveImagesFolder = driveZip.folder('images');
+    for (let i = 0; i < photos.length; i++) {
+        if (thumbnailBuffers[i] && photoFilenames[i]) {
+            driveImagesFolder.file(photoFilenames[i], thumbnailBuffers[i]);
+        }
+    }
+    const driveKmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize, drivePhotoUrls);
+    driveZip.file('doc.kml', driveKmlContent);
+    const driveKmzBuffer = await driveZip.generateAsync({
+        type: 'nodebuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
+    });
+
+    // Drive版KMZを Drive に保存
+    await uploadFileToDrive(drive, projectFolderId, `${projectName}.kmz`, driveKmzBuffer, 'application/vnd.google-earth.kmz');
+
+    return { drivePhotoUrls, driveKmzBuffer };
+}
+
 // ─── KML 生成 ────────────────────────────────────────────────────────────────
 
-function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160) {
+/**
+ * KML を生成する
+ * @param {string} projectName
+ * @param {object} trackData
+ * @param {Array<string|null>} photoFilenames - KMZ 内のサムネールファイル名
+ * @param {number} thumbnailSize
+ * @param {Array<string|null>|null} photoUrls - 写真URLの上書き（Drive版KML用）。null の場合は trackData 内の URL を使用
+ */
+function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160, photoUrls = null) {
     const photos = trackData.photos || [];
     const tracks = trackData.tracks || [];
 
@@ -122,12 +276,15 @@ function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160) {
             tsText = `${yyyy}/${MM}/${dd} ${HH}:${mm}`;
         }
 
+        // 写真URLの決定（photoUrls 指定があれば優先、なければ trackData 内の URL を使用）
+        const photoUrl = (photoUrls && photoUrls[i]) ? photoUrls[i] : photo.url;
+
         let desc = '';
         if (thumbFile) {
             desc += `<img src="images/${thumbFile}" width="320"><br>`;
         }
-        if (photo.url) {
-            desc += `<a href="${escapeXml(photo.url)}">元の写真を表示</a><br>`;
+        if (photoUrl) {
+            desc += `<a href="${escapeXml(photoUrl)}">元の写真を表示</a><br>`;
         }
         desc += `Timestamp: ${tsText}<br>`;
         desc += `Facing: ${photo.facing ?? 'null'}<br>`;
@@ -181,6 +338,10 @@ function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160) {
  *   SMTP_USER=your@gmail.com
  *   SMTP_PASS=apppassword
  *   SMTP_FROM=RouteLogger <your@gmail.com>
+ *
+ * Google Drive 連携を有効にするには functions/.env に追加:
+ *   GDRIVE_FOLDER_ID=<共有フォルダID>
+ * 未設定の場合は Firebase 版 KMZ のみメール送信（現行動作）
  */
 exports.generateKmzAndSendEmail = functions
     .region('asia-northeast1')
@@ -218,11 +379,13 @@ exports.generateKmzAndSendEmail = functions
             );
         }
 
-        // 3. KMZ 生成
+        // 3. サムネール生成（写真バッファ・サムネールバッファをキャッシュして Drive 処理で再利用）
         const photos = trackData.photos || [];
         const zip = new JSZip();
         const imagesFolder = zip.folder('images');
         const photoFilenames = new Array(photos.length).fill(null);
+        const photoBuffers = new Array(photos.length).fill(null);
+        const thumbnailBuffers = new Array(photos.length).fill(null);
 
         for (let i = 0; i < photos.length; i++) {
             const photo = photos[i];
@@ -230,10 +393,12 @@ exports.generateKmzAndSendEmail = functions
             const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
             try {
                 const buffer = await downloadBuffer(photo.url);
+                photoBuffers[i] = buffer;
                 const resized = await resizeToSquare(buffer, thumbnailSize);
                 const thumbnail = (photo.direction != null && photo.direction !== '')
                     ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
                     : resized;
+                thumbnailBuffers[i] = thumbnail;
                 imagesFolder.file(filename, thumbnail);
                 photoFilenames[i] = filename;
             } catch (e) {
@@ -241,16 +406,33 @@ exports.generateKmzAndSendEmail = functions
             }
         }
 
+        // 4. Firebase版KMZ生成（ファイル名に -f を付加）
         const kmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize);
         zip.file('doc.kml', kmlContent);
-
         const kmzBuffer = await zip.generateAsync({
             type: 'nodebuffer',
             compression: 'DEFLATE',
             compressionOptions: { level: 6 },
         });
 
-        // 4. メール送信
+        // 5. Google Drive アップロード（GDRIVE_FOLDER_ID 未設定時はスキップ）
+        let driveKmzBuffer = null;
+        const gDriveFolderId = process.env.GDRIVE_FOLDER_ID;
+        if (gDriveFolderId) {
+            try {
+                const drive = await getDriveClient();
+                const result = await uploadProjectToDrive(
+                    drive, gDriveFolderId, projectName, trackData,
+                    thumbnailSize, photoBuffers, thumbnailBuffers, photoFilenames
+                );
+                driveKmzBuffer = result.driveKmzBuffer;
+            } catch (driveError) {
+                functions.logger.error(`Drive処理エラー: ${driveError.message}`);
+                // Drive 失敗でもメール送信を続行
+            }
+        }
+
+        // 6. メール送信
         const smtpUser = process.env.SMTP_USER;
         const smtpPass = process.env.SMTP_PASS;
         if (!smtpUser || !smtpPass) {
@@ -262,10 +444,7 @@ exports.generateKmzAndSendEmail = functions
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: {
-                user: smtpUser,
-                pass: smtpPass,
-            },
+            auth: { user: smtpUser, pass: smtpPass },
         });
 
         const trackStats = trackData.tracksCount || 0;
@@ -273,6 +452,22 @@ exports.generateKmzAndSendEmail = functions
         const startTime = trackData.startTime
             ? new Date(trackData.startTime).toLocaleString('ja-JP')
             : '';
+
+        // Firebase版を -f.kmz、Drive版を .kmz として添付
+        const attachments = [
+            {
+                filename: `${projectName}-f.kmz`,
+                content: kmzBuffer,
+                contentType: 'application/vnd.google-earth.kmz',
+            },
+        ];
+        if (driveKmzBuffer) {
+            attachments.push({
+                filename: `${projectName}.kmz`,
+                content: driveKmzBuffer,
+                contentType: 'application/vnd.google-earth.kmz',
+            });
+        }
 
         try {
             await transporter.sendMail({
@@ -289,13 +484,7 @@ exports.generateKmzAndSendEmail = functions
                     '',
                     '添付の .kmz ファイルは RouteLogger で読み込み可能です。',
                 ].filter(Boolean).join('\n'),
-                attachments: [
-                    {
-                        filename: `${projectName}.kmz`,
-                        content: kmzBuffer,
-                        contentType: 'application/vnd.google-earth.kmz',
-                    },
-                ],
+                attachments,
             });
         } catch (mailError) {
             functions.logger.error(`メール送信エラー: ${mailError.message}`, { code: mailError.code, response: mailError.response });
@@ -327,7 +516,7 @@ exports.generateKmzToStorage = functions
         }
 
         const bucket = admin.storage().bucket();
-        const thumbnailSize = data.thumbnailSize || 320;
+        const thumbnailSize = data.thumbnailSize || 160;
 
         async function processOne(projectName) {
             const docSnap = await admin.firestore().collection('tracks').doc(projectName).get();
@@ -397,4 +586,95 @@ exports.generateKmzToStorage = functions
             }
             return { success: true, results: [result] };
         }
+    });
+
+// ─── 既存データの Google Drive 移行バッチ ────────────────────────────────────
+
+/**
+ * 既存 Firestore データの写真・サムネール・KMZ を Google Drive に移行する
+ * Firebase Console から onCall で呼び出す
+ *
+ * 単一:     migrateRoutesToDrive({ projectName: 'xxx' })
+ * 前方一致: migrateRoutesToDrive({ prefix: 'xxx' })
+ * 全件:     migrateRoutesToDrive({ all: true })
+ * オプション: thumbnailSize（省略時 160）
+ */
+exports.migrateRoutesToDrive = functions
+    .region('asia-northeast1')
+    .runWith({ timeoutSeconds: 540, memory: '1GB' })
+    .https.onCall(async (data, context) => {
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
+        }
+
+        const gDriveFolderId = process.env.GDRIVE_FOLDER_ID;
+        if (!gDriveFolderId) {
+            throw new functions.https.HttpsError(
+                'failed-precondition',
+                'GDRIVE_FOLDER_ID が未設定です。functions/.env を確認してください。'
+            );
+        }
+
+        const { projectName, prefix, all, thumbnailSize = 160 } = data;
+
+        // 対象ドキュメントを取得してフィルタリング
+        const snapshot = await admin.firestore().collection('tracks').get();
+        let docs = snapshot.docs;
+
+        if (projectName) {
+            docs = docs.filter(d => d.id === projectName);
+        } else if (prefix) {
+            docs = docs.filter(d => d.id.startsWith(prefix));
+        } else if (!all) {
+            throw new functions.https.HttpsError(
+                'invalid-argument',
+                'projectName, prefix, または all:true が必要です'
+            );
+        }
+
+        if (docs.length === 0) {
+            return { success: true, results: [], message: '対象ドキュメントが見つかりません' };
+        }
+
+        const drive = await getDriveClient();
+        const results = [];
+
+        for (const doc of docs) {
+            const trackData = doc.data();
+            const photos = trackData.photos || [];
+            const photoBuffers = new Array(photos.length).fill(null);
+            const thumbnailBuffers = new Array(photos.length).fill(null);
+            const photoFilenames = new Array(photos.length).fill(null);
+
+            // サムネール生成（Drive アップロード前に一括処理）
+            for (let i = 0; i < photos.length; i++) {
+                const photo = photos[i];
+                if (!photo.url) continue;
+                try {
+                    const buffer = await downloadBuffer(photo.url);
+                    photoBuffers[i] = buffer;
+                    photoFilenames[i] = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
+                    const resized = await resizeToSquare(buffer, thumbnailSize);
+                    thumbnailBuffers[i] = (photo.direction != null && photo.direction !== '')
+                        ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
+                        : resized;
+                } catch (e) {
+                    functions.logger.warn(`${doc.id} 写真 ${i + 1} サムネール生成失敗: ${e.message}`);
+                }
+            }
+
+            try {
+                await uploadProjectToDrive(
+                    drive, gDriveFolderId, doc.id, trackData,
+                    thumbnailSize, photoBuffers, thumbnailBuffers, photoFilenames
+                );
+                functions.logger.info(`${doc.id} Drive移行完了`);
+                results.push({ projectName: doc.id, success: true });
+            } catch (e) {
+                functions.logger.error(`${doc.id} Drive移行失敗: ${e.message}`);
+                results.push({ projectName: doc.id, success: false, error: e.message });
+            }
+        }
+
+        return { success: true, results };
     });
