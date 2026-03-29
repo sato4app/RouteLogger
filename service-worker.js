@@ -100,6 +100,7 @@ self.addEventListener('fetch', function (event) {
           })
           .catch(function (error) {
             console.error('[Service Worker] フェッチエラー:', error);
+            return new Response('', { status: 408, statusText: 'Network error' });
           });
       })
   );
