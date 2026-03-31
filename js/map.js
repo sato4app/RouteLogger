@@ -10,7 +10,22 @@ window._showPhotoLightbox = function(url) {
     const lb = document.getElementById('photoLightbox');
     const img = document.getElementById('photoLightboxImg');
     if (!lb || !img) return;
-    img.src = url;
+
+    // Google Drive /view URL は uc?export=view 形式に変換して直接表示を試みる
+    const driveMatch = url.match(/https:\/\/drive\.google\.com\/file\/d\/([^/?#]+)/);
+    if (driveMatch) {
+        const viewUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+        img.onerror = () => {
+            // 読み込み失敗時は新しいタブにフォールバック
+            img.onerror = null;
+            lb.classList.add('hidden');
+            window.open(url, '_blank');
+        };
+        img.src = viewUrl;
+    } else {
+        img.onerror = null;
+        img.src = url;
+    }
     lb.classList.remove('hidden');
 };
 
@@ -391,15 +406,8 @@ export function displayExternalGeoJSON(geoJson) {
                                             img.style.maxWidth = '160px';
                                             img.style.height = 'auto';
                                             img.style.cursor = 'pointer';
-                                            // タップで lightbox 拡大表示
+                                            // サムネールタップで lightbox 拡大表示（blob版）
                                             img.setAttribute('onclick', `window._showPhotoLightbox('${blobUrl}')`);
-                                            // 同じ説明内の Drive リンクも同じ blob で lightbox を開く
-                                            const container = img.parentElement;
-                                            if (container) {
-                                                container.querySelectorAll('a[onclick*="drive.google.com"]').forEach(a => {
-                                                    a.setAttribute('onclick', `event.preventDefault();window._showPhotoLightbox('${blobUrl}')`);
-                                                });
-                                            }
                                             updated = true;
                                         }
                                     } catch (e) {
