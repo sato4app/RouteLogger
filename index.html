@@ -208,9 +208,10 @@
     </div>
 
     <!-- Photo Lightbox -->
-    <div id="photoLightbox" class="photo-lightbox hidden" onclick="this.classList.add('hidden')">
-        <button class="lightbox-close-btn" onclick="event.stopPropagation();document.getElementById('photoLightbox').classList.add('hidden')">✕</button>
+    <div id="photoLightbox" class="photo-lightbox hidden" onclick="this.classList.add('hidden'); document.getElementById('photoLightboxIframe').src = '';">
+        <button class="lightbox-close-btn" onclick="event.stopPropagation();document.getElementById('photoLightbox').classList.add('hidden'); document.getElementById('photoLightboxIframe').src = '';">✕</button>
         <img id="photoLightboxImg" src="" alt="" onclick="event.stopPropagation()">
+        <iframe id="photoLightboxIframe" src="" onclick="event.stopPropagation()" class="hidden" frameborder="0" style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: transparent; z-index: 1;"></iframe>
     </div>
 
     <!-- Stats Dialog -->

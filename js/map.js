@@ -9,21 +9,46 @@ import { calculateHeading } from './utils.js';
 window._showPhotoLightbox = function(url) {
     const lb = document.getElementById('photoLightbox');
     const img = document.getElementById('photoLightboxImg');
+    const iframe = document.getElementById('photoLightboxIframe');
     if (!lb || !img) return;
+
+    if (iframe) iframe.classList.add('hidden');
+    img.classList.add('hidden');
 
     // Google Drive /view URL は uc?export=view 形式に変換して直接表示を試みる
     const driveMatch = url.match(/https:\/\/drive\.google\.com\/file\/d\/([^/?#]+)/);
     if (driveMatch) {
         const viewUrl = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+        const previewUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+        
+        img.onerror = () => {
+            // 読み込み失敗時(スマホ等でCookieブロックの場合)は新しいタブではなくIframeプレビューにフォールバック
+            img.onerror = null;
+            img.classList.add('hidden');
+            if (iframe) {
+                iframe.src = previewUrl;
+                iframe.classList.remove('hidden');
+            } else {
+                lb.classList.add('hidden');
+                window.open(url, '_blank');
+            }
+        };
+        img.onload = () => {
+            img.onload = null;
+            img.classList.remove('hidden');
+        };
+        img.src = viewUrl;
+    } else {
         img.onerror = () => {
             // 読み込み失敗時は新しいタブにフォールバック
             img.onerror = null;
             lb.classList.add('hidden');
             window.open(url, '_blank');
         };
-        img.src = viewUrl;
-    } else {
-        img.onerror = null;
+        img.onload = () => {
+            img.onload = null;
+            img.classList.remove('hidden');
+        };
         img.src = url;
     }
     lb.classList.remove('hidden');
