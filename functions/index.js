@@ -336,7 +336,7 @@ function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160, p
 
 /**
  * Firebase 保存完了後に呼び出す。
- * KMZ を生成してユーザーのメールアドレスに送信する。
+ * Google Drive に写真・サムネール・KMZ をアップロードし、KMZ をメール送信する。
  *
  * SMTP 設定は functions/.env に記載:
  *   SMTP_HOST=smtp.gmail.com
@@ -346,9 +346,9 @@ function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160, p
  *   SMTP_PASS=apppassword
  *   SMTP_FROM=RouteLogger <your@gmail.com>
  *
- * Google Drive 連携を有効にするには functions/.env に追加:
- *   GDRIVE_FOLDER_ID=<共有フォルダID>
- * 未設定の場合は Firebase 版 KMZ のみメール送信（現行動作）
+ * Google Drive 連携: functions/.env に以下を設定:
+ *   GDRIVE_FOLDER_ID=<フォルダID>
+ *   GDRIVE_CLIENT_ID / GDRIVE_CLIENT_SECRET / GDRIVE_REFRESH_TOKEN
  */
 exports.generateKmzAndSendEmail = functions
     .region('asia-northeast1')
@@ -386,10 +386,8 @@ exports.generateKmzAndSendEmail = functions
             );
         }
 
-        // 3. サムネール生成（写真バッファ・サムネールバッファをキャッシュして Drive 処理で再利用）
+        // 3. サムネール生成（Drive アップロードで再利用するためバッファをキャッシュ）
         const photos = trackData.photos || [];
-        const zip = new JSZip();
-        const imagesFolder = zip.folder('images');
         const photoFilenames = new Array(photos.length).fill(null);
         const photoBuffers = new Array(photos.length).fill(null);
         const thumbnailBuffers = new Array(photos.length).fill(null);
@@ -397,49 +395,34 @@ exports.generateKmzAndSendEmail = functions
         for (let i = 0; i < photos.length; i++) {
             const photo = photos[i];
             if (!photo.url) continue;
-            const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
             try {
                 const buffer = await downloadBuffer(photo.url);
                 photoBuffers[i] = buffer;
                 const resized = await resizeToSquare(buffer, thumbnailSize);
-                const thumbnail = (photo.direction != null && photo.direction !== '')
+                thumbnailBuffers[i] = (photo.direction != null && photo.direction !== '')
                     ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
                     : resized;
-                thumbnailBuffers[i] = thumbnail;
-                imagesFolder.file(filename, thumbnail);
-                photoFilenames[i] = filename;
+                photoFilenames[i] = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
             } catch (e) {
                 functions.logger.warn(`写真 ${i + 1} のサムネール作成に失敗: ${e.message}`);
             }
         }
 
-        // 4. Firebase版KMZ生成（ファイル名に -f を付加）
-        const kmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize);
-        zip.file('doc.kml', kmlContent);
-        const kmzBuffer = await zip.generateAsync({
-            type: 'nodebuffer',
-            compression: 'DEFLATE',
-            compressionOptions: { level: 6 },
-        });
-
-        // 5. Google Drive アップロード（GDRIVE_FOLDER_ID 未設定時はスキップ）
-        let driveKmzBuffer = null;
+        // 4. Google Drive アップロード
         const gDriveFolderId = process.env.GDRIVE_FOLDER_ID;
-        if (gDriveFolderId) {
-            try {
-                const drive = await getDriveClient();
-                const result = await uploadProjectToDrive(
-                    drive, gDriveFolderId, projectName, trackData,
-                    thumbnailSize, photoBuffers, thumbnailBuffers, photoFilenames
-                );
-                driveKmzBuffer = result.driveKmzBuffer;
-            } catch (driveError) {
-                functions.logger.error(`Drive処理エラー: ${driveError.message}`);
-                // Drive 失敗でもメール送信を続行
-            }
+        if (!gDriveFolderId) {
+            throw new functions.https.HttpsError(
+                'failed-precondition',
+                'GDRIVE_FOLDER_ID が未設定です。functions/.env を確認してください。'
+            );
         }
+        const drive = await getDriveClient();
+        const { driveKmzBuffer } = await uploadProjectToDrive(
+            drive, gDriveFolderId, projectName, trackData,
+            thumbnailSize, photoBuffers, thumbnailBuffers, photoFilenames
+        );
 
-        // 6. メール送信
+        // 5. メール送信
         const smtpUser = process.env.SMTP_USER;
         const smtpPass = process.env.SMTP_PASS;
         if (!smtpUser || !smtpPass) {
@@ -460,22 +443,6 @@ exports.generateKmzAndSendEmail = functions
             ? new Date(trackData.startTime).toLocaleString('ja-JP')
             : '';
 
-        // Firebase版を -f.kmz、Drive版を .kmz として添付
-        const attachments = [
-            {
-                filename: `${projectName}-f.kmz`,
-                content: kmzBuffer,
-                contentType: 'application/vnd.google-earth.kmz',
-            },
-        ];
-        if (driveKmzBuffer) {
-            attachments.push({
-                filename: `${projectName}.kmz`,
-                content: driveKmzBuffer,
-                contentType: 'application/vnd.google-earth.kmz',
-            });
-        }
-
         try {
             await transporter.sendMail({
                 from: process.env.SMTP_FROM || smtpUser,
@@ -491,7 +458,13 @@ exports.generateKmzAndSendEmail = functions
                     '',
                     '添付の .kmz ファイルは RouteLogger で読み込み可能です。',
                 ].filter(Boolean).join('\n'),
-                attachments,
+                attachments: [
+                    {
+                        filename: `${projectName}.kmz`,
+                        content: driveKmzBuffer,
+                        contentType: 'application/vnd.google-earth.kmz',
+                    },
+                ],
             });
         } catch (mailError) {
             functions.logger.error(`メール送信エラー: ${mailError.message}`, { code: mailError.code, response: mailError.response });
@@ -503,96 +476,6 @@ exports.generateKmzAndSendEmail = functions
 
         functions.logger.info(`KMZ送信完了: ${projectName} → ${recipientEmail}`);
         return { success: true, sentTo: recipientEmail };
-    });
-
-// ─── KMZ を Storage に保存する関数 ────────────────────────────────────────────
-
-/**
- * 指定したプロジェクト（または全プロジェクト）の KMZ を生成して Storage に保存する。
- * コンソールから呼び出す用途を想定。
- *
- * 単一: generateKmzToStorage({ projectName: 'xxx' })
- * 全件: generateKmzToStorage({ all: true })
- */
-exports.generateKmzToStorage = functions
-    .region('asia-northeast1')
-    .runWith({ timeoutSeconds: 540, memory: '512MB' })
-    .https.onCall(async (data, context) => {
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', '認証が必要です');
-        }
-
-        const bucket = admin.storage().bucket();
-        const thumbnailSize = data.thumbnailSize || 160;
-
-        async function processOne(projectName) {
-            const docSnap = await admin.firestore().collection('tracks').doc(projectName).get();
-            if (!docSnap.exists) {
-                functions.logger.warn(`スキップ: "${projectName}" が見つかりません`);
-                return null;
-            }
-            const trackData = docSnap.data();
-            const photos = trackData.photos || [];
-
-            const zip = new JSZip();
-            const imagesFolder = zip.folder('images');
-            const photoFilenames = new Array(photos.length).fill(null);
-
-            for (let i = 0; i < photos.length; i++) {
-                const photo = photos[i];
-                if (!photo.url) continue;
-                const filename = `thumb_${String(i + 1).padStart(3, '0')}.jpg`;
-                try {
-                    const buffer = await downloadBuffer(photo.url);
-                    const resized = await resizeToSquare(buffer, thumbnailSize);
-                    const thumbnail = (photo.direction != null && photo.direction !== '')
-                        ? await addBadgeToThumbnail(resized, thumbnailSize, photo.direction)
-                        : resized;
-                    imagesFolder.file(filename, thumbnail);
-                    photoFilenames[i] = filename;
-                } catch (e) {
-                    functions.logger.warn(`写真 ${i + 1} のサムネール作成に失敗: ${e.message}`);
-                }
-            }
-
-            const kmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize);
-            zip.file('doc.kml', kmlContent);
-
-            const kmzBuffer = await zip.generateAsync({
-                type: 'nodebuffer',
-                compression: 'DEFLATE',
-                compressionOptions: { level: 6 },
-            });
-
-            const storagePath = `kmz/${projectName}.kmz`;
-            const file = bucket.file(storagePath);
-            await file.save(kmzBuffer, {
-                metadata: { contentType: 'application/vnd.google-earth.kmz' },
-            });
-            await file.makePublic();
-            const url = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
-            functions.logger.info(`KMZ保存完了: ${storagePath}`);
-            return { projectName, url };
-        }
-
-        if (data.all) {
-            const snapshot = await admin.firestore().collection('tracks').get();
-            const results = [];
-            for (const doc of snapshot.docs) {
-                const result = await processOne(doc.id);
-                if (result) results.push(result);
-            }
-            return { success: true, results };
-        } else {
-            if (!data.projectName) {
-                throw new functions.https.HttpsError('invalid-argument', 'projectName または all:true が必要です');
-            }
-            const result = await processOne(data.projectName);
-            if (!result) {
-                throw new functions.https.HttpsError('not-found', `"${data.projectName}" が見つかりません`);
-            }
-            return { success: true, results: [result] };
-        }
     });
 
 // ─── 既存データの Google Drive 移行バッチ ────────────────────────────────────
