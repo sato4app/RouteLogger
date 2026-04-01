@@ -148,83 +148,16 @@ export async function showPhotoList() {
 
                 item.appendChild(thumbDiv);
 
-                // サムネール下のメタ情報（常に表示）
+                // サムネール下のメタ情報（メモのみ表示）
                 const meta = document.createElement('div');
                 meta.className = 'photo-meta';
 
-                // Timestamp
-                let tsText = 'null';
-                if (photo.timestamp != null) {
-                    const d = new Date(photo.timestamp);
-                    if (!isNaN(d.getTime())) {
-                        try {
-                            const formatter = new Intl.DateTimeFormat('ja-JP', {
-                                timeZone: 'Asia/Tokyo',
-                                year: 'numeric', month: '2-digit', day: '2-digit',
-                                hour: '2-digit', minute: '2-digit',
-                                hourCycle: 'h23'
-                            });
-                            const parts = formatter.formatToParts(d);
-                            const p = {};
-                            parts.forEach(part => p[part.type] = part.value);
-                            if (p.year && p.month && p.day && p.hour && p.minute) {
-                                tsText = `${p.year}/${p.month}/${p.day} ${p.hour}:${p.minute}`;
-                            } else {
-                                tsText = formatter.format(d).replace(/-/g, '/');
-                            }
-                        } catch(e) {
-                            const yyyy = d.getFullYear();
-                            const mm = String(d.getMonth() + 1).padStart(2, '0');
-                            const dd = String(d.getDate()).padStart(2, '0');
-                            const hh = String(d.getHours()).padStart(2, '0');
-                            const min = String(d.getMinutes()).padStart(2, '0');
-                            tsText = `${yyyy}/${mm}/${dd} ${hh}:${min}`;
-                        }
-                    }
+                const memoText = photo.text ?? photo.memo ?? null;
+                if (memoText) {
+                    const memoEl = document.createElement('span');
+                    memoEl.textContent = memoText;
+                    meta.appendChild(memoEl);
                 }
-                const tsEl = document.createElement('span');
-                tsEl.textContent = `Timestamp: ${tsText}`;
-                meta.appendChild(tsEl);
-
-                // Facing
-                const facingEl = document.createElement('span');
-                facingEl.textContent = `Facing: ${photo.facing ?? 'null'}`;
-                meta.appendChild(facingEl);
-
-                // Direction
-                const dirEl = document.createElement('span');
-                if (hasDirection) {
-                    const deg = typeof photo.direction === 'number' ? photo.direction :
-                                photo.direction === 'left' ? -60 :
-                                photo.direction === 'right' ? 60 : photo.direction;
-                    dirEl.textContent = `Direction: ${deg}°`;
-                } else {
-                    dirEl.textContent = 'Direction: null';
-                }
-                meta.appendChild(dirEl);
-
-                // Compass（Firebase restore: photo.compass, ローカル: compassDirection/compassHeading から生成）
-                const compassStr = photo.compass ??
-                    ((photo.compassDirection != null || photo.compassHeading != null)
-                        ? `${photo.compassDirection ?? ''}${photo.compassHeading != null ? `（${photo.compassHeading}°）` : ''}`
-                        : null);
-                const compassEl = document.createElement('span');
-                compassEl.textContent = `Compass: ${compassStr ?? 'null'}`;
-                meta.appendChild(compassEl);
-
-                // Memo
-                const memoEl = document.createElement('span');
-                const memoText = photo.text ?? photo.memo ?? 'null';
-                memoEl.textContent = `Memo: ${memoText}`;
-                meta.appendChild(memoEl);
-
-                // Size（画像ロード後に更新）
-                const sizeEl = document.createElement('span');
-                sizeEl.textContent = 'Size: -';
-                img.addEventListener('load', () => {
-                    sizeEl.textContent = `Size: ${img.naturalWidth}x${img.naturalHeight}px`;
-                });
-                meta.appendChild(sizeEl);
 
                 item.appendChild(meta);
 

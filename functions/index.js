@@ -311,12 +311,18 @@ function buildKml(projectName, trackData, photoFilenames, thumbnailSize = 160, p
         if (photoUrl) {
             desc += `<a href="${escapeXml(photoUrl)}">元の写真を表示</a><br>`;
         }
-        desc += `Timestamp: ${tsText}<br>`;
-        desc += `Facing: ${photo.facing ?? 'null'}<br>`;
-        desc += `Direction: ${photo.direction != null ? photo.direction + '°' : 'null'}<br>`;
-        desc += `Compass: ${photo.compass ?? 'null'}<br>`;
-        desc += `Memo: ${photo.text ? escapeXml(photo.text) : 'null'}<br>`;
-        desc += `Size: ${thumbFile ? `${thumbnailSize}x${thumbnailSize}px` : 'null'}`;
+        desc += `${tsText}<br>`;
+        // Facing/Direction 統合表示（例: "130° (Backward)"）
+        const dirDeg = photo.direction != null ? `${photo.direction}°` : null;
+        const facingLabel = photo.facing
+            ? photo.facing.split('/').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('/')
+            : null;
+        if (dirDeg || facingLabel) {
+            desc += `${[dirDeg, facingLabel ? `(${facingLabel})` : null].filter(Boolean).join(' ')}<br>`;
+        }
+        if (photo.text) {
+            desc += `${escapeXml(photo.text)}<br>`;
+        }
 
         photoPlacemarks += `
     <Placemark>
