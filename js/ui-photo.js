@@ -197,11 +197,21 @@ async function buildExternalPhotoList() {
                 const originalPath = dir + originalBase;
                 if (fPhotoMap.has(originalPath)) {
                     targetFileName = originalPath;
+                } else {
+                    // ディレクトリ構造が異なるケースを考慮し、ファイル名(originalBase)で全体から探す
+                    for (const key of fPhotoMap.keys()) {
+                        if (key === originalBase || key.endsWith('/' + originalBase)) {
+                            targetFileName = key;
+                            break;
+                        }
+                    }
                 }
-                // 元写真が見つからなければそのままサムネイルを使う
             }
 
-            const photoRecord = fPhotoMap.get(targetFileName) || fPhotoMap.get(imgSrc);
+            const thumbRecord = fPhotoMap.get(imgSrc);
+            const originalRecord = fPhotoMap.get(targetFileName);
+            
+            const photoRecord = originalRecord || thumbRecord;
             if (!photoRecord) continue;
 
             const recordKey = `${fImportId}_${photoRecord.fileName}`;
@@ -214,6 +224,7 @@ async function buildExternalPhotoList() {
 
             displayList.push({
                 ...photoRecord,
+                thumbBlob: thumbRecord ? thumbRecord.blob : null,
                 location: (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) ? { lat, lng } : null,
                 name: props.name || photoRecord.fileName
             });
@@ -253,7 +264,8 @@ function renderExternalPhotoGrid(extPhotoList, grid) {
 
         const img = document.createElement('img');
         img.alt = photo.name || '外部写真';
-        const objectUrl = URL.createObjectURL(photo.blob);
+        // 一覧（サムネイル）表示用には thumbBlob があれば優先して使用する
+        const objectUrl = URL.createObjectURL(photo.thumbBlob || photo.blob);
         img.src = objectUrl;
         img.onload = () => URL.revokeObjectURL(objectUrl);
         thumbDiv.appendChild(img);
