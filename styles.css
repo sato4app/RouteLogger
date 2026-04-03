@@ -561,15 +561,17 @@ body {
 .grid-content {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    overflow-x: hidden;
+    padding: 8px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 4px;
     align-content: start;
 }
 
 .photo-item {
     width: 100%;
+    min-width: 0;
     background: #f0f0f0;
     cursor: pointer;
     display: flex;
@@ -622,6 +624,13 @@ body {
     color: #555;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.photo-meta span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ext-photo-link {
