@@ -272,6 +272,37 @@ export function initSettings() {
     if (imageSettingsDefaultBtn) imageSettingsDefaultBtn.addEventListener('click', resetToDefaults);
     if (imageSettingsCancelBtn)  imageSettingsCancelBtn.addEventListener('click', closeImageSettingsPanel);
 
+    // ── 過去データDrive移行 ──────────────────────────────────────────────────────
+    const migrateToDriveBtn = document.getElementById('migrateToDriveBtn');
+    if (migrateToDriveBtn) {
+        migrateToDriveBtn.addEventListener('click', async () => {
+            const nameInput = document.getElementById('migrateNameInput')?.value?.trim();
+            const mode = document.querySelector('input[name="migrateMode"]:checked')?.value;
+            const msg = document.getElementById('migrateToDriveMsg');
+            if (!nameInput) { if (msg) msg.textContent = 'routelog名を入力してください'; return; }
+
+            if (msg) msg.textContent = '実行中...';
+            migrateToDriveBtn.disabled = true;
+            try {
+                const param = mode === 'prefix' ? { prefix: nameInput } : { projectName: nameInput };
+                const fn = firebase.functions().httpsCallable('migrateRoutesToDrive');
+                const result = await fn(param);
+                const results = result.data.results || [];
+                if (results.length === 0) {
+                    if (msg) msg.textContent = '対象のroutelogが見つかりませんでした';
+                } else {
+                    const ok  = results.filter(r => r.success).length;
+                    const ng  = results.filter(r => !r.success).length;
+                    if (msg) msg.textContent = `完了: 成功 ${ok}件${ng > 0 ? `、失敗 ${ng}件` : ''}`;
+                }
+            } catch (e) {
+                if (msg) msg.textContent = `エラー: ${e.message}`;
+            } finally {
+                migrateToDriveBtn.disabled = false;
+            }
+        });
+    }
+
     // 起動時: localStorageの保存値をstateに反映
     const savedResolution = localStorage.getItem('routeLogger_photoResolution');
     if (savedResolution !== null) state.setPhotoResolutionLevel(parseInt(savedResolution));

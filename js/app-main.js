@@ -394,6 +394,12 @@ function setupEventListeners() {
     const dataSaveBtn = document.getElementById('dataSaveBtn');
     if (dataSaveBtn) {
         dataSaveBtn.addEventListener('click', async () => {
+            const tracks = await getAllTracks();
+            if (!tracks || tracks.length === 0) {
+                updateStatus('保存するルートログがありません');
+                returnToMainControl();
+                return;
+            }
             const jstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
             const defaultName = `RLog-${jstDate.toISOString().slice(0, 10).replace(/-/g, '')}`;
             if (state.isFirebaseEnabled) {

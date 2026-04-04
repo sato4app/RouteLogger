@@ -345,10 +345,10 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-label">
-                        <div class="setting-title">画像設定</div>
+                        <div class="setting-title">画像設定等</div>
                         <div class="setting-desc">写真解像度・JPEG品質・サムネール</div>
                     </div>
-                    <button id="imageSettingsBtn" class="secondary-btn" style="padding:6px 20px; white-space:nowrap; flex:none;">画像設定</button>
+                    <button id="imageSettingsBtn" class="secondary-btn" style="padding:6px 20px; white-space:nowrap; flex:none;">画像設定等</button>
                 </div>
                 <!-- 画像設定パネル（展開） -->
                 <div id="imageSettingsSection" class="hidden" style="padding: 8px 16px 4px;">
@@ -395,6 +395,24 @@
                         <button id="imageSettingsSaveBtn" class="primary-btn" style="padding:6px 20px; flex:none;">設定</button>
                         <button id="imageSettingsDefaultBtn" class="secondary-btn" style="padding:6px 20px; flex:none;">規定値</button>
                         <button id="imageSettingsCancelBtn" class="secondary-btn" style="padding:6px 20px; flex:none;">キャンセル</button>
+                    </div>
+                    <!-- 過去データDrive移行 -->
+                    <div style="border-top:1px solid #ddd; margin-top:12px; padding-top:10px;">
+                        <div class="setting-title" style="margin-bottom:6px;">過去データをDriveに移行</div>
+                        <div style="display:flex; gap:6px; margin-bottom:6px;">
+                            <label style="display:flex; align-items:center; gap:4px; font-size:0.85em;">
+                                <input type="radio" name="migrateMode" id="migrateModeExact" value="exact" checked> 個別指定
+                            </label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:0.85em;">
+                                <input type="radio" name="migrateMode" id="migrateModePrefix" value="prefix"> 前方一致
+                            </label>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="text" id="migrateNameInput" placeholder="routelog名を入力"
+                                style="flex:1; font-size:0.85em; padding:4px 8px; border:1px solid #ccc; border-radius:4px;">
+                            <button id="migrateToDriveBtn" class="primary-btn" style="padding:6px 16px; flex:none; white-space:nowrap;">実行</button>
+                        </div>
+                        <div id="migrateToDriveMsg" style="margin-top:6px; font-size:0.8em; color:#555; min-height:1.2em;"></div>
                     </div>
                 </div>
             </div>
