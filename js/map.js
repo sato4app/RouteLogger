@@ -360,7 +360,7 @@ export function displayExternalGeoJSON(geoJson) {
             // ポイントデータの表示スタイル設定
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, {
-                    radius: 8,
+                    radius: 6,
                     fillColor: "#4682b4",
                     color: "#4682b4",
                     weight: 2,
@@ -373,7 +373,7 @@ export function displayExternalGeoJSON(geoJson) {
                     color: '#4682b4',
                     weight: 4,
                     opacity: 0.7,
-                    fillOpacity: 0.2
+                    fillOpacity: 0.7
                 };
             },
             onEachFeature: function (feature, layer) {
