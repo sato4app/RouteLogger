@@ -151,6 +151,10 @@ export async function initMap() {
     }).setView([initialPosition.lat, initialPosition.lng], initialPosition.zoom);
     state.setMap(mapInstance);
 
+    // 緊急ポイント用ペイン（KMZマーカーより背面: z-index 350）
+    const emergencyPane = mapInstance.createPane('emergencyPane');
+    emergencyPane.style.zIndex = '350';
+
     // 1. Scale Control (Top Left)
     L.control.scale({
         position: 'topleft',
@@ -517,7 +521,8 @@ export async function displayEmergencyPoints() {
                     color: '#007700',
                     weight: 2,
                     opacity: 1,
-                    fillOpacity: 0.8
+                    fillOpacity: 0.8,
+                    pane: 'emergencyPane'
                 });
             },
             onEachFeature: (feature, layer) => {
