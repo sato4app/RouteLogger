@@ -362,7 +362,7 @@ export function initSettings() {
             if (selected.length === 0) { if (msg) msg.textContent = 'routelogを選択してください'; return; }
 
             migrateExecBtn.disabled = true;
-            const fn = firebase.app().functions('asia-northeast1').httpsCallable('migrateRoutesToDrive');
+            const fn = firebase.app().functions('asia-northeast1').httpsCallable('migrateRoutesToDrive', { timeout: 540000 });
             let ok = 0, ng = 0;
             for (let i = 0; i < selected.length; i++) {
                 if (msg) msg.textContent = `実行中... (${i + 1}/${selected.length})`;

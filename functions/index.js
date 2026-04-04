@@ -189,6 +189,26 @@ async function uploadProjectToDrive(drive, rootFolderId, projectName, trackData,
     const photos = trackData.photos || [];
 
     const projectFolderId = await getOrCreateDriveFolder(drive, rootFolderId, projectName);
+
+    // 1. KMZ を先に生成・Drive に保存（写真URLは元のURLを使用）
+    const driveZip = new JSZip();
+    const driveImagesFolder = driveZip.folder('images');
+    for (let i = 0; i < photos.length; i++) {
+        if (thumbnailBuffers[i] && photoFilenames[i]) {
+            driveImagesFolder.file(photoFilenames[i], thumbnailBuffers[i]);
+        }
+    }
+    const driveKmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize, null);
+    driveZip.file('doc.kml', driveKmlContent);
+    const driveKmzBuffer = await driveZip.generateAsync({
+        type: 'nodebuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
+    });
+    await uploadFileToDrive(drive, projectFolderId, `${projectName}.kmz`, driveKmzBuffer, 'application/vnd.google-earth.kmz');
+    functions.logger.info(`${projectName} KMZ保存完了`);
+
+    // 2. 写真・サムネールを Drive にアップロード
     const photosFolderId = await getOrCreateDriveFolder(drive, projectFolderId, 'photos');
     const imagesFolderId = await getOrCreateDriveFolder(drive, projectFolderId, 'images');
 
@@ -227,25 +247,6 @@ async function uploadProjectToDrive(drive, rootFolderId, projectName, trackData,
             functions.logger.warn(`${projectName} 写真 ${i + 1} Drive処理失敗: ${e.message}`);
         }
     }
-
-    // Drive版KMZ生成（写真URLはDrive URLを使用）
-    const driveZip = new JSZip();
-    const driveImagesFolder = driveZip.folder('images');
-    for (let i = 0; i < photos.length; i++) {
-        if (thumbnailBuffers[i] && photoFilenames[i]) {
-            driveImagesFolder.file(photoFilenames[i], thumbnailBuffers[i]);
-        }
-    }
-    const driveKmlContent = buildKml(projectName, trackData, photoFilenames, thumbnailSize, drivePhotoUrls);
-    driveZip.file('doc.kml', driveKmlContent);
-    const driveKmzBuffer = await driveZip.generateAsync({
-        type: 'nodebuffer',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 6 },
-    });
-
-    // Drive版KMZを Drive に保存
-    await uploadFileToDrive(drive, projectFolderId, `${projectName}.kmz`, driveKmzBuffer, 'application/vnd.google-earth.kmz');
 
     return { drivePhotoUrls, driveKmzBuffer };
 }
