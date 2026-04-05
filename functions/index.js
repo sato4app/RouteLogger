@@ -463,7 +463,7 @@ exports.generateKmzAndSendEmail = functions
             auth: { user: smtpUser, pass: smtpPass },
         });
 
-        const trackStats = trackData.tracksCount || 0;
+        const trackStats = (trackData.tracks || []).reduce((sum, t) => sum + (t.points?.length || 0), 0);
         const photoCount = photos.length;
         const startTime = trackData.startTime
             ? new Date(trackData.startTime).toLocaleString('ja-JP')
