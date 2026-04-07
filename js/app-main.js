@@ -106,7 +106,16 @@ async function initApp() {
     // Service Worker登録
     registerServiceWorker();
 
-    updateStatus('初期化完了');
+    // キャッシュ名を取得して2行目に表示
+    let cacheName = '';
+    if ('caches' in window) {
+        try {
+            const keys = await caches.keys();
+            const swCache = keys.find(k => k.startsWith('routelogger-'));
+            if (swCache) cacheName = '\n' + swCache;
+        } catch (e) { /* 取得失敗時は無視 */ }
+    }
+    updateStatus('初期化完了' + cacheName);
 }
 
 /**
