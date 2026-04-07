@@ -81,6 +81,22 @@ export function showSettingsDialog() {
         minooEmergencyToggle.checked = state.isMinooEmergencyEnabled;
     }
 
+    // アプリバージョン（実際に使用中のキャッシュ名）を表示
+    const appVersionDisplay = document.getElementById('appVersionDisplay');
+    if (appVersionDisplay) {
+        if ('caches' in window) {
+            caches.keys()
+                .then(keys => {
+                    appVersionDisplay.textContent = keys.length > 0 ? keys.join(', ') : '不明';
+                })
+                .catch(() => {
+                    appVersionDisplay.textContent = '取得失敗';
+                });
+        } else {
+            appVersionDisplay.textContent = '非対応';
+        }
+    }
+
     toggleVisibility('settingsDialog', true);
 }
 
