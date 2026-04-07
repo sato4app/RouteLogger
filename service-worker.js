@@ -1,7 +1,7 @@
 // RouteLogger Service Worker
 // PWA対応: オフライン機能とキャッシュ管理
 
-const CACHE_NAME = 'routelogger-v8';
+const CACHE_NAME = 'routelogger-v9';
 const urlsToCache = [
   './',
   './index.html',
@@ -28,11 +28,12 @@ const urlsToCache = [
 
 // Service Workerのインストール
 self.addEventListener('install', function (event) {
+  // 待機せず即座にアクティブ化（旧バージョンを強制終了）
+  self.skipWaiting();
 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function (cache) {
-
         return cache.addAll(urlsToCache);
       })
       .catch(function (error) {
@@ -46,14 +47,32 @@ self.addEventListener('activate', function (event) {
 
   event.waitUntil(
     caches.keys().then(function (cacheNames) {
+      // 旧キャッシュが存在するか確認（アップデート判定）
+      const hasOldCache = cacheNames.some(function (name) {
+        return name !== CACHE_NAME && name.startsWith('routelogger-');
+      });
+
       return Promise.all(
         cacheNames.map(function (cacheName) {
           if (cacheName !== CACHE_NAME) {
-
             return caches.delete(cacheName);
           }
         })
-      );
+      )
+      .then(function () {
+        // 全クライアントを即座にこのSWの管理下に置く
+        return self.clients.claim();
+      })
+      .then(function () {
+        // アップデートの場合のみ、開いているページにリロードを通知
+        if (hasOldCache) {
+          return self.clients.matchAll({ type: 'window' }).then(function (clients) {
+            clients.forEach(function (client) {
+              client.postMessage({ type: 'SW_UPDATED' });
+            });
+          });
+        }
+      });
     })
   );
 });

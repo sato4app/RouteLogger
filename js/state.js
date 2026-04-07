@@ -75,7 +75,7 @@ export function setIsFirebaseEnabled(value) { isFirebaseEnabled = value; }
 export let isShowFacingButtons = true;
 export function setIsShowFacingButtons(value) { isShowFacingButtons = value; }
 
-export let isMinooEmergencyEnabled = false;
+export let isMinooEmergencyEnabled = true;
 export function setIsMinooEmergencyEnabled(value) { isMinooEmergencyEnabled = value; }
 
 // 写真解像度: 0=720x1280, 1=360x640, 2=180x320

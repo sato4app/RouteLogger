@@ -502,6 +502,12 @@ function setupDeviceOrientation() {
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js');
+        // 新バージョンのSWからリロード通知を受け取ったら強制リロード
+        navigator.serviceWorker.addEventListener('message', function (event) {
+            if (event.data && event.data.type === 'SW_UPDATED') {
+                window.location.reload();
+            }
+        });
     }
 }
 
