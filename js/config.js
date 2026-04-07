@@ -30,9 +30,6 @@ export const DEFAULT_PHOTO_RESOLUTION_LEVEL = 1; // 360×640px（中）
 export const DEFAULT_PHOTO_QUALITY = 70;          // 70%
 export const DEFAULT_THUMBNAIL_SIZE = 160;        // 160px
 
-// 画像設定パスワード
-export const SETTINGS_PASSWORD = 'satos03';
-
 // 地図タイル設定
 export const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 export const GSI_ATTRIBUTION = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">国土地理院</a>';
