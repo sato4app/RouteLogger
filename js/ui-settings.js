@@ -92,19 +92,19 @@ export function showSettingsDialog() {
         minooEmergencyToggle.checked = state.isMinooEmergencyEnabled;
     }
 
-    // アプリバージョン（アクティブなSWのCACHE_NAME）を表示
+    // アプリバージョン（ブラウザに存在するキャッシュ名）を表示
     const appVersionDisplay = document.getElementById('appVersionDisplay');
     if (appVersionDisplay) {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const mc = new MessageChannel();
-            mc.port1.onmessage = (e) => {
-                if (e.data && e.data.type === 'CACHE_NAME') {
-                    appVersionDisplay.textContent = e.data.value;
-                }
-            };
-            navigator.serviceWorker.controller.postMessage({ type: 'GET_CACHE_NAME' }, [mc.port2]);
+        if ('caches' in window) {
+            caches.keys()
+                .then(keys => {
+                    appVersionDisplay.textContent = keys.length > 0 ? keys.join(', ') : '不明';
+                })
+                .catch(() => {
+                    appVersionDisplay.textContent = '取得失敗';
+                });
         } else {
-            appVersionDisplay.textContent = '不明';
+            appVersionDisplay.textContent = '非対応';
         }
     }
 

@@ -77,13 +77,6 @@ self.addEventListener('activate', function (event) {
   );
 });
 
-// メッセージ処理（CACHE_NAME照会など）
-self.addEventListener('message', function (event) {
-  if (event.data && event.data.type === 'GET_CACHE_NAME') {
-    event.source.postMessage({ type: 'CACHE_NAME', value: CACHE_NAME });
-  }
-});
-
 // リクエストの処理
 self.addEventListener('fetch', function (event) {
   // 国土地理院のタイルは常にネットワークから取得（リアルタイム性のため）
