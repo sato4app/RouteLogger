@@ -127,8 +127,8 @@ body {
 #dataPanel {
     position: absolute;
     /* Was in .panel */
-    bottom: calc(env(safe-area-inset-bottom, 30px) + 95px);
-    /* Controls height ~95px + 10px gap - 10px offset */
+    bottom: calc(env(safe-area-inset-bottom, 30px) + 112px);
+    /* Controls height ~100px + 12px gap */
     /* Position above controls */
     left: 12px;
     right: 12px;
