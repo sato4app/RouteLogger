@@ -365,8 +365,8 @@ export function displayExternalGeoJSON(geoJson) {
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, {
                     radius: 6,
-                    fillColor: "#4682b4",
-                    color: "#4682b4",
+                    fillColor: "#0055ff",
+                    color: "#0055ff",
                     weight: 2,
                     opacity: 1,
                     fillOpacity: 0.8
@@ -374,7 +374,7 @@ export function displayExternalGeoJSON(geoJson) {
             },
             style: function (feature) {
                 return {
-                    color: '#4682b4',
+                    color: '#0055ff',
                     weight: 4,
                     opacity: 0.7,
                     fillOpacity: 0.7

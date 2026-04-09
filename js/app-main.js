@@ -55,7 +55,7 @@ async function initApp() {
 
     // ロード済みデータフラグ確認（KMZインポート後のリロード時はマゼンタ表示）
     const isLoadedData = localStorage.getItem('routeLogger_loadedData') === 'true';
-    const loadedColor = isLoadedData ? '#00BFFF' : null;
+    const loadedColor = isLoadedData ? '#000080' : null;
 
     // トラックデータ表示
     try {

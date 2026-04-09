@@ -298,11 +298,11 @@ export async function capturePhoto() {
         state.setCurrentPhotoId(photoId);
         state.setPhotosInSession(state.photosInSession + 1);
 
+        // デフォルト値（direction=0, facing='forward'）で即時上書き保存
+        // 方向ボタン未操作のままアップロードされた場合でも null にならないようにする
+        // マーカー追加も savePhotoWithDirection 内で行われる
+        await savePhotoWithDirection(0, 'forward');
 
-        if (location) {
-            photoRecord.id = photoId;
-            addPhotoMarkerToMap(photoRecord, showPhotoFromMarker);
-        }
         updateDataSizeIfOpen();
 
     } catch (error) {
