@@ -100,6 +100,7 @@ export async function saveToFirebase(providedName) {
         }
 
         updateStatus('Firebase保存完了');
+        setUiBusy(false); // alertを表示する前にsleepを解除
         alert(`Firebaseに保存しました\nルート名: ${projectName}\n記録点数: ${trackStats.totalPoints}件\n写真: ${allPhotos.length}件`);
 
     } catch (error) {

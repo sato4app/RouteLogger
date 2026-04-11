@@ -457,12 +457,15 @@ function setupEventListeners() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // ポケット内でのシェイクによるiOS「入力キャンセル」ダイアログを防止
-    // 画面がロック/アンロックされる際、フォーカス中のテキスト入力をblurしてundoヒストリを消去する
+    // 画面がロック/アンロックされる際、全テキスト入力をblurしてundoヒストリを消去する
+    // ※ activeElementのみ対象では不十分。全inputのvalueを空→復元することでiOSのundoスタックを消去する
     document.addEventListener('visibilitychange', () => {
-        const active = document.activeElement;
-        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-            active.blur();
-        }
+        document.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(el => {
+            const val = el.value;
+            el.blur();
+            el.value = '';
+            el.value = val;
+        });
     });
 
     // デバイス方角センサー
